@@ -16,12 +16,6 @@ use pragmatic::sha256::hex;
 
 use crate::export;
 
-fn esc(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-}
-
 fn open_journal(dir: &Path, run: &str, key: Option<&str>) -> Result<Journal, String> {
     let path = dir.join(format!("{run}.journal"));
     let loaded = match key {
@@ -49,71 +43,65 @@ fn discover(dir: &Path) -> Vec<String> {
 
 fn index_page(dir: &Path, key: Option<&str>) -> String {
     let mut rows = String::new();
-    for run in discover(dir) {
-        let (entries, chain, head, dangling) = match open_journal(dir, &run, key) {
+    let runs = discover(dir);
+    let count = runs.len();
+    for run in runs {
+        let (entries, chain, head, effects) = match open_journal(dir, &run, key) {
             Ok(j) => {
                 let chain = if j.verify().is_ok() {
-                    "<span class=\"ok\">verified</span>".to_string()
+                    "<span class=\"state\">verified</span>".to_string()
                 } else {
-                    "<span class=\"bad\">BROKEN</span>".to_string()
+                    "<span class=\"state bad\">chain broken</span>".to_string()
                 };
                 let head = j
                     .head()
-                    .map(|h| hex(&h)[..16].to_string())
+                    .map(|h| hex(&h)[..12].to_string())
                     .unwrap_or_else(|| "—".into());
                 let d = j.dangling_intents().len();
-                let dangling = if d > 0 {
-                    format!("<span class=\"warn\">{d} dangling</span>")
+                let effects = if d > 0 {
+                    format!("<span class=\"state bad\">{d} open intent(s)</span>")
                 } else {
-                    "<span class=\"dim\">—</span>".to_string()
+                    "<span class=\"state dim\">settled</span>".to_string()
                 };
-                (j.len().to_string(), chain, head, dangling)
+                (j.len().to_string(), chain, head, effects)
             }
             Err(e) => (
-                "?".into(),
-                format!("<span class=\"bad\">{}</span>", esc(&e)),
+                "—".into(),
+                format!("<span class=\"state bad\">{}</span>", export::esc(&e)),
                 "—".into(),
                 String::new(),
             ),
         };
         rows.push_str(&format!(
-            "<tr><td><a href=\"/run/{run}\">{run}</a></td><td>{entries}</td>\
-             <td>{chain}</td><td>{dangling}</td><td class=\"mono dim\">{head}</td></tr>",
-            run = esc(&run),
+            "<tr><td class=\"run\"><a href=\"/run/{run}\">{run}</a></td>\
+             <td class=\"state dim\">{entries} steps</td>\
+             <td>{chain}</td><td>{effects}</td>\
+             <td class=\"state dim mono\">{head}</td></tr>",
+            run = export::esc(&run),
         ));
     }
     if rows.is_empty() {
-        rows = "<tr><td colspan=\"5\" class=\"dim\">no journals here yet — \
-                point an agent's Runtime at this directory</td></tr>"
+        rows = "<tr><td colspan=\"5\"><span class=\"state dim\">no journals here yet — \
+                point an agent's runtime at this directory</span></td></tr>"
             .to_string();
     }
-    format!(
-        r#"<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>pragmatic console</title>
-<style>
- :root {{ --bg:#0b0e14; --panel:#11151f; --line:#1e2530; --text:#d7dde8;
-          --dim:#7b8496; --accent:#7aa2f7; }}
- body {{ margin:0; background:var(--bg); color:var(--text);
-        font:15px/1.5 ui-sans-serif,system-ui,sans-serif; }}
- .wrap {{ max-width:880px; margin:0 auto; padding:40px 20px; }}
- h1 {{ font-size:20px; }} h1 span {{ color:var(--accent); }}
- .sub {{ color:var(--dim); font-size:13px; margin-bottom:24px; }}
- table {{ width:100%; border-collapse:collapse; background:var(--panel);
-         border:1px solid var(--line); border-radius:8px; overflow:hidden; }}
- th,td {{ text-align:left; padding:10px 14px; border-bottom:1px solid var(--line);
-         font-size:14px; }}
- th {{ color:var(--dim); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }}
- a {{ color:var(--accent); text-decoration:none; }}
- .ok {{ color:#9ece6a; }} .bad {{ color:#f7768e; }} .warn {{ color:#e0af68; }}
- .dim {{ color:var(--dim); }} .mono {{ font-family:ui-monospace,monospace; font-size:12px; }}
-</style></head><body><div class="wrap">
-<h1><span>pragmatic</span> console</h1>
-<div class="sub">journals in this directory · refresh to follow live runs</div>
-<table><tr><th>run</th><th>entries</th><th>chain</th><th>effects</th><th>head</th></tr>
-{rows}</table>
-</div></body></html>"#
-    )
+    let body = format!(
+        r#"<div class="wrap">
+  <div class="brand">{mark}<a href="/">Pragmatic</a></div>
+  <div class="kicker">Console</div>
+  <h1>Every run,<br>on the record.</h1>
+  <div class="meta">
+    <div><b>{count}</b> journaled runs in this directory</div>
+    <div>refresh to follow live runs</div>
+  </div>
+  <table>
+    <tr><th>Run</th><th>Steps</th><th>Chain</th><th>Effects</th><th>Head</th></tr>
+    {rows}
+  </table>
+</div>"#,
+        mark = export::MARK,
+    );
+    export::page("pragmatic console", &body)
 }
 
 fn respond(stream: &mut TcpStream, status: &str, content_type: &str, body: &str) {
