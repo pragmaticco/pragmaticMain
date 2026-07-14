@@ -8,7 +8,10 @@
 
 use pragmatic::{Ctx, Fault, Runtime, SeededOracle, Value};
 
-/// Wrap the run. Every oracle call is journaled once.
+/// Wrap the run. Every oracle call is journaled once, and the program's
+/// identity is journaled up front — a run recorded under this version of
+/// `research` refuses to replay under a changed one.
+#[pragmatic::durable]
 fn research(ctx: &mut Ctx) -> Result<Value, Fault> {
     let plan = ctx.oracle("plan: survey durable execution for agents")?; // journaled
 

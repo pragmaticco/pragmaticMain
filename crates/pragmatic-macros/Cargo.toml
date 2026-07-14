@@ -1,0 +1,15 @@
+[package]
+name = "pragmatic-macros"
+description = "The #[pragmatic::durable] attribute macro. Compile-time only; zero dependencies."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+proc-macro = true
+
+# Zero dependencies, like the core: the macro is a small token-level
+# transform, not a full parser.
+[dependencies]

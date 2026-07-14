@@ -196,6 +196,45 @@ impl<'a> Ctx<'a> {
         Ok(outcome)
     }
 
+    /// Journal (or verify) the identity of the agent program driving this
+    /// run. Emitted automatically at the top of every `#[pragmatic::durable]`
+    /// function; call it by hand if you don't use the macro.
+    ///
+    /// On record, appends `Program { name, hash }`. On replay, verifies the
+    /// journaled identity — a changed program fails as [`Fault::JournalDesync`]
+    /// *before* any step can misreplay, turning assumption A2 ("the same term
+    /// is replayed") into an enforced property.
+    pub fn program_marker(&mut self, name: &str, hash: &str) -> Result<(), Fault> {
+        if let Some((cursor, event)) = self.replay_next() {
+            return match event {
+                Event::Program { name: n, hash: h } if n == name && h == hash => Ok(()),
+                Event::Program { name: n, hash: h } if n == name => Err(Fault::JournalDesync {
+                    cursor,
+                    expected: format!("Program({name}, {hash})"),
+                    found: format!(
+                        "Program({n}, {h}) — the source of `{name}` changed since this \
+                         journal was recorded"
+                    ),
+                }),
+                other => Err(Fault::JournalDesync {
+                    cursor,
+                    expected: format!("Program({name})"),
+                    found: format!("{other:?}"),
+                }),
+            };
+        }
+        if self.strict {
+            return Err(Fault::ReplayExhausted { cursor: self.pos });
+        }
+        self.journal.append(Event::Program {
+            name: name.to_string(),
+            hash: hash.to_string(),
+        })?;
+        self.journal.sync()?;
+        self.pos = self.journal.len();
+        Ok(())
+    }
+
     /// `do[f] e` — a durable effect under the three-phase write-ahead
     /// discipline (paper §4.5):
     ///

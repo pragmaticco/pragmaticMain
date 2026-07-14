@@ -69,6 +69,12 @@ pub enum Event {
     /// A realized clock read (logical or wall time is externally determined,
     /// so it is journaled like any other draw).
     Clock { nanos: u64 },
+    /// Identity of the agent program driving this run: name plus a hash of
+    /// its source tokens (emitted by `#[pragmatic::durable]`). Replay checks
+    /// it first, turning assumption A2 ("the same term is replayed") into an
+    /// enforced property — changed code fails loudly as a `JournalDesync`
+    /// instead of misreplaying.
+    Program { name: String, hash: String },
 }
 
 impl Event {
@@ -113,6 +119,11 @@ impl Event {
             Event::Clock { nanos } => {
                 buf.push(6);
                 buf.extend_from_slice(&nanos.to_le_bytes());
+            }
+            Event::Program { name, hash } => {
+                buf.push(7);
+                put(&mut buf, name.as_bytes());
+                put(&mut buf, hash.as_bytes());
             }
         }
         buf
@@ -172,6 +183,10 @@ impl Event {
                 name: String::from_utf8(r.field()?).ok()?,
             },
             6 => Event::Clock { nanos: r.u64()? },
+            7 => Event::Program {
+                name: String::from_utf8(r.field()?).ok()?,
+                hash: String::from_utf8(r.field()?).ok()?,
+            },
             _ => return None,
         };
         if r.done() {

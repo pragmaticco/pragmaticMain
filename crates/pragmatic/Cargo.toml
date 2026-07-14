@@ -1,0 +1,21 @@
+[package]
+name = "pragmatic"
+description = "Durable execution for agents that don't run deterministically. Journals every step an agent takes, so it survives any crash and replays exactly — nondeterministic model behavior included."
+keywords = ["agents", "llm", "durable-execution", "replay", "crash-recovery"]
+categories = ["asynchronous", "development-tools"]
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+# The core runtime has ZERO runtime dependencies: it links into the agent you
+# already run, on the infra you already have. The only (default) dependency is
+# the compile-time `#[pragmatic::durable]` attribute macro; disable default
+# features for a fully dependency-free build.
+[dependencies]
+pragmatic-macros = { version = "0.2.0", path = "../pragmatic-macros", optional = true }
+
+[features]
+default = ["macros"]
+macros = ["dep:pragmatic-macros"]

@@ -68,3 +68,9 @@ pub use oracle::{CountingOracle, Oracle, RefusingOracle, SeededOracle};
 pub use runtime::{Recover, RunReport, Runtime};
 pub use supervisor::{Decision, Supervisor};
 pub use value::Value;
+
+/// `#[pragmatic::durable]` — journal the program's identity so a run
+/// recorded under one version of your agent refuses to replay under another.
+/// See [`Ctx::program_marker`] for the underlying mechanism.
+#[cfg(feature = "macros")]
+pub use pragmatic_macros::durable;
