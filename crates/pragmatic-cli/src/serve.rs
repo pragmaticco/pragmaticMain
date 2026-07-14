@@ -42,64 +42,96 @@ fn discover(dir: &Path) -> Vec<String> {
 }
 
 fn index_page(dir: &Path, key: Option<&str>) -> String {
-    let mut rows = String::new();
     let runs = discover(dir);
     let count = runs.len();
-    for run in runs {
-        let (entries, chain, head, effects) = match open_journal(dir, &run, key) {
+    let mut total_steps: u64 = 0;
+    let mut verified = 0usize;
+    let mut open_intents = 0usize;
+    let mut rows = String::new();
+
+    for run in &runs {
+        match open_journal(dir, run, key) {
             Ok(j) => {
-                let chain = if j.verify().is_ok() {
-                    "<span class=\"state\">verified</span>".to_string()
+                total_steps += j.len();
+                let chain_ok = j.verify().is_ok();
+                if chain_ok {
+                    verified += 1;
+                }
+                let d = j.dangling_intents().len();
+                open_intents += d;
+                let chain = if chain_ok {
+                    "<span class=\"pill\">verified</span>".to_string()
                 } else {
-                    "<span class=\"state bad\">chain broken</span>".to_string()
+                    "<span class=\"pill alarm\">chain broken</span>".to_string()
+                };
+                let effects = if d > 0 {
+                    format!("<span class=\"pill alarm\">{d} open intent(s)</span>")
+                } else {
+                    String::new()
                 };
                 let head = j
                     .head()
-                    .map(|h| hex(&h)[..12].to_string())
+                    .map(|h| hex(&h)[..10].to_string())
                     .unwrap_or_else(|| "—".into());
-                let d = j.dangling_intents().len();
-                let effects = if d > 0 {
-                    format!("<span class=\"state bad\">{d} open intent(s)</span>")
-                } else {
-                    "<span class=\"state dim\">settled</span>".to_string()
-                };
-                (j.len().to_string(), chain, head, effects)
+                rows.push_str(&format!(
+                    "<a class=\"card runrow\" href=\"/run/{run}\">\
+                       <span class=\"name\">{run}</span>\
+                       <span class=\"rmeta\">\
+                         <span class=\"pill\">{steps} steps</span>\
+                         {chain}{effects}\
+                         <span class=\"pill mono\">{head}</span>\
+                       </span>\
+                       <span class=\"arrow\">→</span>\
+                     </a>\n",
+                    run = export::esc(run),
+                    steps = j.len(),
+                ));
             }
-            Err(e) => (
-                "—".into(),
-                format!("<span class=\"state bad\">{}</span>", export::esc(&e)),
-                "—".into(),
-                String::new(),
-            ),
-        };
-        rows.push_str(&format!(
-            "<tr><td class=\"run\"><a href=\"/run/{run}\">{run}</a></td>\
-             <td class=\"state dim\">{entries} steps</td>\
-             <td>{chain}</td><td>{effects}</td>\
-             <td class=\"state dim mono\">{head}</td></tr>",
-            run = export::esc(&run),
-        ));
+            Err(e) => {
+                rows.push_str(&format!(
+                    "<div class=\"card runrow\"><span class=\"name\">{}</span>\
+                     <span class=\"rmeta\"><span class=\"pill alarm\">{}</span></span></div>\n",
+                    export::esc(run),
+                    export::esc(&e),
+                ));
+            }
+        }
     }
     if rows.is_empty() {
-        rows = "<tr><td colspan=\"5\"><span class=\"state dim\">no journals here yet — \
-                point an agent's runtime at this directory</span></td></tr>"
+        rows = "<div class=\"card empty\">No journals here yet — point an agent's \
+                runtime at this directory and its runs will appear as they record.</div>"
             .to_string();
     }
+
+    let effect_stat = if open_intents > 0 {
+        format!(
+            "<div class=\"stat\"><div class=\"n alarm\">{open_intents} open</div>\
+             <div class=\"l\">Effect intents</div></div>"
+        )
+    } else {
+        String::new()
+    };
+
     let body = format!(
         r#"<div class="wrap">
-  <div class="brand">{mark}<a href="/">Pragmatic</a></div>
-  <div class="kicker">Console</div>
-  <h1>Every run,<br>on the record.</h1>
-  <div class="meta">
-    <div><b>{count}</b> journaled runs in this directory</div>
-    <div>refresh to follow live runs</div>
+  {mast}
+  <div class="hero">
+    <div class="kicker">Console</div>
+    <h1>Every run,<br>on the record.</h1>
+    <div class="lede">Each journal below is an append-only, hash-chained account
+    of what one agent actually did. Refresh to follow live runs.</div>
   </div>
-  <table>
-    <tr><th>Run</th><th>Steps</th><th>Chain</th><th>Effects</th><th>Head</th></tr>
-    {rows}
-  </table>
+  <div class="stats">
+    <div class="stat"><div class="n">{count}</div><div class="l">Journaled runs</div></div>
+    <div class="stat"><div class="n">{total_steps}</div><div class="l">Recorded steps</div></div>
+    <div class="stat"><div class="n">{verified} / {count}</div><div class="l">Chains verified</div></div>
+    {effect_stat}
+  </div>
+  <div class="runlist">
+  {rows}
+  </div>
 </div>"#,
-        mark = export::MARK,
+        mast = export::masthead("Console"),
     );
     export::page("pragmatic console", &body)
 }
