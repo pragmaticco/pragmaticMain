@@ -1,0 +1,17 @@
+[package]
+name = "pragmatic"
+version = "0.1.0"
+edition = "2021"
+description = "Durable execution for agents that don't run deterministically. A Rust runtime that journals every step an agent takes, so it survives any crash and replays exactly — nondeterministic model behavior included."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/pragmaticco/pragmaticMain"
+keywords = ["agents", "llm", "durable-execution", "replay", "crash-recovery"]
+categories = ["asynchronous", "development-tools"]
+
+# The core is zero-dependency by design: it links into the agent you already
+# run, on the infra you already have. std only.
+[dependencies]
+
+[profile.release]
+lto = true
+codegen-units = 1
