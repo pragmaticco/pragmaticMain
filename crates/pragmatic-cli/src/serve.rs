@@ -59,79 +59,79 @@ fn index_page(dir: &Path, key: Option<&str>) -> String {
                 }
                 let d = j.dangling_intents().len();
                 open_intents += d;
+                let draws = j
+                    .entries()
+                    .iter()
+                    .filter(|e| matches!(e.event, pragmatic::journal::Event::OracleDraw { .. }))
+                    .count();
                 let chain = if chain_ok {
-                    "<span class=\"pill\">verified</span>".to_string()
+                    "verified".to_string()
                 } else {
-                    "<span class=\"pill alarm\">chain broken</span>".to_string()
+                    "<span class=\"alarm\">BROKEN</span>".to_string()
                 };
                 let effects = if d > 0 {
-                    format!("<span class=\"pill alarm\">{d} open intent(s)</span>")
+                    format!("<span class=\"alarm\">{d} open</span>")
                 } else {
-                    String::new()
+                    "<span class=\"faint\">settled</span>".to_string()
                 };
                 let head = j
                     .head()
-                    .map(|h| hex(&h)[..10].to_string())
+                    .map(|h| hex(&h)[..12].to_string())
                     .unwrap_or_else(|| "—".into());
                 rows.push_str(&format!(
-                    "<a class=\"card runrow\" href=\"/run/{run}\">\
-                       <span class=\"name\">{run}</span>\
-                       <span class=\"rmeta\">\
-                         <span class=\"pill\">{steps} steps</span>\
-                         {chain}{effects}\
-                         <span class=\"pill mono\">{head}</span>\
-                       </span>\
-                       <span class=\"arrow\">→</span>\
-                     </a>\n",
+                    "<tr class=\"run\">\
+                       <td class=\"name\"><a href=\"/run/{run}\">{run}</a></td>\
+                       <td class=\"r\">{steps}</td>\
+                       <td class=\"r\">{draws}</td>\
+                       <td>{chain}</td><td>{effects}</td>\
+                       <td><span class=\"faint\">{head}</span></td>\
+                     </tr>\n",
                     run = export::esc(run),
                     steps = j.len(),
                 ));
             }
             Err(e) => {
                 rows.push_str(&format!(
-                    "<div class=\"card runrow\"><span class=\"name\">{}</span>\
-                     <span class=\"rmeta\"><span class=\"pill alarm\">{}</span></span></div>\n",
+                    "<tr class=\"run\"><td class=\"name\">{}</td>\
+                     <td colspan=\"5\"><span class=\"alarm\">{}</span></td></tr>\n",
                     export::esc(run),
                     export::esc(&e),
                 ));
             }
         }
     }
-    if rows.is_empty() {
-        rows = "<div class=\"card empty\">No journals here yet — point an agent's \
-                runtime at this directory and its runs will appear as they record.</div>"
-            .to_string();
-    }
-
-    let effect_stat = if open_intents > 0 {
+    let table = if rows.is_empty() {
+        "<div class=\"empty\">no journals in this directory — point an agent's \
+         runtime here and runs appear as they record</div>"
+            .to_string()
+    } else {
         format!(
-            "<div class=\"stat\"><div class=\"n alarm\">{open_intents} open</div>\
-             <div class=\"l\">Effect intents</div></div>"
+            "<table>\
+               <tr><th>run</th><th class=\"r\">steps</th><th class=\"r\">draws</th>\
+                   <th>chain</th><th>effects</th><th>head</th></tr>\
+               {rows}\
+             </table>"
         )
+    };
+
+    let open = if open_intents > 0 {
+        format!("<div><span class=\"alarm\">{open_intents} OPEN INTENT(S)</span></div>")
     } else {
         String::new()
     };
 
     let body = format!(
-        r#"<div class="wrap">
-  {mast}
-  <div class="hero">
-    <div class="kicker">Console</div>
-    <h1>Every run,<br>on the record.</h1>
-    <div class="lede">Each journal below is an append-only, hash-chained account
-    of what one agent actually did. Refresh to follow live runs.</div>
-  </div>
-  <div class="stats">
-    <div class="stat"><div class="n">{count}</div><div class="l">Journaled runs</div></div>
-    <div class="stat"><div class="n">{total_steps}</div><div class="l">Recorded steps</div></div>
-    <div class="stat"><div class="n">{verified} / {count}</div><div class="l">Chains verified</div></div>
-    {effect_stat}
-  </div>
-  <div class="runlist">
-  {rows}
-  </div>
-</div>"#,
-        mast = export::masthead("Console"),
+        r#"{mast}
+<div class="facts">
+  <div><b>{count}</b> runs</div>
+  <div><b>{total_steps}</b> journaled steps</div>
+  <div>chains <b>{verified}/{count}</b> verified</div>
+  {open}
+  <div>dir <b>{dir}</b></div>
+</div>
+{table}"#,
+        mast = export::masthead("runs", "live — refresh to follow"),
+        dir = export::esc(&dir.display().to_string()),
     );
     export::page("pragmatic console", &body)
 }
