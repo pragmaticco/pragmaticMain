@@ -106,11 +106,20 @@ behind **T2 (probabilistic noninterference)** — secret inputs cannot flow
 into public observations. Memory is internally determined, so it is *not*
 journaled; replay reconstructs it by re-execution.
 
-## What's deliberately out of scope (v0.2)
+## Sync, async, Python — one semantics
 
-- **Async**: the API is synchronous; run the runtime on its own thread.
-  Semantics won't change when async lands.
+The record/replay primitives live in one place (the context's
+`oracle_replay`/`oracle_commit`, `effect_replay`/`effect_begin`/`effect_commit`)
+and every surface — sync `Ctx`, async `AsyncCtx`, and the Python `Ctx` —
+drives those same primitives. Strict replay's "the model is never called"
+holds identically everywhere because the mode check runs *before* the
+fresh-sample path, not because an oracle was swapped out. Journals are
+byte-compatible across all three surfaces and the CLI.
+
+## What's deliberately out of scope (v0.3)
+
 - **Distributed journals**: one process, local files. The managed/cloud
-  backend is the commercial layer on top.
+  backend (hosted journaling, shared console, alerting) is the commercial
+  layer on top.
 - **T2/T3 mechanization**: proved on paper, enforced in the runtime, not
   yet in Lean.

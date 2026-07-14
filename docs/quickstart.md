@@ -80,7 +80,7 @@ assert_eq!(audit.trace, report.trace);
 Strict replay reproduces the run bit-for-bit — nondeterministic model
 behavior included — for time-travel debugging and audit.
 
-## 6. Inspect from the terminal
+## 6. Inspect from the terminal — or the console
 
 ```sh
 cargo install pragmatic-cli
@@ -88,8 +88,56 @@ cargo install pragmatic-cli
 pragmatic runs   --dir ./journals            # every run, chain status
 pragmatic show   research-42 --dir ./journals
 pragmatic verify --all --dir ./journals      # walk the tamper-evident chain
-pragmatic export research-42 --dir ./journals -o run.html   # replay console
+pragmatic export research-42 --dir ./journals -o run.html   # replay console file
+pragmatic serve  --dir ./journals            # live console on 127.0.0.1:7171
 ```
+
+## Async agents
+
+Same API, `await`ed — executor-agnostic and still zero-dependency:
+
+```rust
+use pragmatic::{AsyncCtx, AsyncRuntime, Fault, Value};
+
+#[pragmatic::durable]
+async fn research(ctx: &mut AsyncCtx<'_, MyOracle>) -> Result<Value, Fault> {
+    let plan = ctx.oracle("plan the task").await?;
+    ctx.effect("publish", plan, async |arg| {
+        Ok(Value::from(format!("s3://{arg}")))   // awaited tool call
+    }).await
+}
+
+let mut rt = AsyncRuntime::on_dir("./journals", oracle)?;
+let report = rt.run("research-42", research).await?;   // drive from tokio,
+                                                        // smol, or pragmatic::block_on
+```
+
+Implement `AsyncOracle` over your async HTTP client for native async model
+calls; every sync `Oracle` also works as-is.
+
+## Python
+
+```sh
+pip install pragmatic-runtime
+```
+
+```python
+import pragmatic
+
+rt = pragmatic.Runtime("./journals", my_model_fn)   # (str) -> str
+
+def research(ctx):
+    plan = ctx.oracle("plan the task")
+    return ctx.effect("publish", plan, lambda arg: f"s3://{arg}")
+
+report = rt.run("research-42", research)
+report = rt.resume("research-42", research)   # crash-recover, no re-sampling
+audit  = rt.replay("research-42", research)   # model never called
+assert audit.trace == report.trace and rt.verify("research-42")
+```
+
+Journals written from Python are byte-compatible with the Rust runtime and
+every CLI command above.
 
 ## Where next
 

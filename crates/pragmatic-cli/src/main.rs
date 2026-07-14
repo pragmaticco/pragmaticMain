@@ -6,9 +6,12 @@
 //! pragmatic verify RUN|--all [--dir DIR] [--key KEY] check the hash chain
 //! pragmatic export RUN [--dir DIR] [--key KEY] [-o FILE]
 //!                                                    self-contained HTML replay console
+//! pragmatic serve  [--dir DIR] [--key KEY] [--port P]
+//!                                                    live web console on localhost
 //! ```
 
 mod export;
+mod serve;
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -23,6 +26,7 @@ struct Args {
     key: Option<String>,
     out: Option<PathBuf>,
     all: bool,
+    port: u16,
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -35,6 +39,7 @@ fn parse_args() -> Result<Args, String> {
         key: None,
         out: None,
         all: false,
+        port: 7171,
     };
     while let Some(a) = argv.next() {
         match a.as_str() {
@@ -42,6 +47,13 @@ fn parse_args() -> Result<Args, String> {
             "--key" => args.key = Some(argv.next().ok_or("--key needs a value")?),
             "-o" | "--out" => args.out = Some(argv.next().ok_or("-o needs a value")?.into()),
             "--all" => args.all = true,
+            "--port" => {
+                args.port = argv
+                    .next()
+                    .ok_or("--port needs a value")?
+                    .parse()
+                    .map_err(|_| "--port must be a number".to_string())?
+            }
             "-h" | "--help" => {
                 args.command = "help".to_string();
             }
@@ -255,17 +267,20 @@ USAGE:
     pragmatic show   RUN [--dir DIR] [--key KEY]
     pragmatic verify RUN|--all [--dir DIR] [--key KEY]
     pragmatic export RUN [--dir DIR] [--key KEY] [-o FILE]
+    pragmatic serve  [--dir DIR] [--key KEY] [--port PORT]
 
 COMMANDS:
     runs      List every run journaled under DIR (default: .)
     show      Print a run's full event timeline
     verify    Walk the tamper-evident hash chain end to end
     export    Write a self-contained HTML replay console for a run
+    serve     Live web console on http://127.0.0.1:PORT (default 7171)
 
 OPTIONS:
-    --dir DIR   Journal directory (default: current directory)
-    --key KEY   HMAC key for keyed (signed) journals
-    -o FILE     Output path for export (default: RUN.html)"
+    --dir DIR    Journal directory (default: current directory)
+    --key KEY    HMAC key for keyed (signed) journals
+    -o FILE      Output path for export (default: RUN.html)
+    --port PORT  Port for serve (loopback only; default 7171)"
     );
 }
 
@@ -282,6 +297,7 @@ fn main() -> ExitCode {
         "show" => cmd_show(&args),
         "verify" => cmd_verify(&args),
         "export" => cmd_export(&args),
+        "serve" => serve::serve(args.dir.clone(), args.key.clone(), args.port),
         "help" | "--help" | "-h" => {
             help();
             Ok(())

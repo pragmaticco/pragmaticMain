@@ -50,6 +50,7 @@
 //! assert_eq!(audit.trace, report.trace);
 //! ```
 
+pub mod async_runtime;
 pub mod ctx;
 pub mod fault;
 pub mod journal;
@@ -57,9 +58,11 @@ pub mod memory;
 pub mod oracle;
 pub mod runtime;
 pub mod sha256;
+mod store;
 pub mod supervisor;
 pub mod value;
 
+pub use async_runtime::{block_on, AsyncCtx, AsyncOracle, AsyncRuntime};
 pub use ctx::{Ctx, RunOptions, TraceLabel};
 pub use fault::Fault;
 pub use journal::{Cursor, Entry, Event, Journal};

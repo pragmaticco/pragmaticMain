@@ -30,6 +30,7 @@ jobs:
       - name: Examples
         run: |
           cargo run --release -p pragmatic --example research_agent
+          cargo run --release -p pragmatic --example async_research
           cargo run --release -p pragmatic --example tool_use_retries
           cargo run --release -p pragmatic --example map_reduce
       - name: CLI smoke test
@@ -38,6 +39,50 @@ jobs:
           cargo run --release -p pragmatic-cli -- runs --dir /tmp/demo
           cargo run --release -p pragmatic-cli -- verify --all --dir /tmp/demo
           cargo run --release -p pragmatic-cli -- export research-42 --dir /tmp/demo -o /tmp/run.html
+      - name: Console smoke test
+        run: |
+          cargo run --release -p pragmatic-cli -- serve --dir /tmp/demo --port 7171 &
+          sleep 2
+          curl -sf http://127.0.0.1:7171/healthz
+          curl -sf http://127.0.0.1:7171/ | grep -q research-42
+          curl -sf http://127.0.0.1:7171/run/research-42 | grep -q "chain verified"
+          kill %1
+
+  python:
+    name: python bindings smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: Swatinem/rust-cache@v2
+      - name: Build extension module
+        run: cargo build --release -p pragmatic-python
+      - name: Run Python smoke test
+        run: |
+          mkdir -p /tmp/pymod
+          cp target/release/libpragmatic.so /tmp/pymod/pragmatic.so
+          PYTHONPATH=/tmp/pymod python3 crates/pragmatic-python/tests/smoke.py
+
+  live-api:
+    name: live Anthropic API (needs secret)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Live record + replay
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "no ANTHROPIC_API_KEY secret configured; skipping live test"
+          else
+            cargo test -p pragmatic-anthropic -- --ignored
+          fi
 
   msrv-and-min:
     name: core builds without default features

@@ -73,6 +73,33 @@ assert_eq!(audit.trace, resumed.trace);
 
 Try it without a model: `cargo run -p pragmatic --example research_agent`
 
+**Async?** Same guarantees, `await`ed — executor-agnostic (tokio, smol, or
+the built-in `block_on`), still zero dependencies:
+
+```rust
+#[pragmatic::durable]
+async fn research(ctx: &mut AsyncCtx<'_, MyOracle>) -> Result<Value, Fault> {
+    let plan = ctx.oracle("plan the task").await?;               // journaled
+    ctx.effect("publish", plan, async |arg| { /* awaited tool call */
+        Ok(Value::from(format!("s3://{arg}"))) }).await
+}
+let mut rt = AsyncRuntime::on_dir("./journals", oracle)?;
+let report = rt.run("research-42", research).await?;
+```
+
+**Python?** The same runtime, importable:
+
+```python
+import pragmatic
+rt = pragmatic.Runtime("./journals", my_model_fn)
+report = rt.run("research-42", agent)      # record
+report = rt.resume("research-42", agent)   # crash-recover, no re-sampling
+audit  = rt.replay("research-42", agent)   # bit-for-bit, model never called
+```
+
+See [crates/pragmatic-python](crates/pragmatic-python) — journals are
+byte-compatible across Rust and Python, and the CLI reads both.
+
 ## Measured, not promised
 
 Every number below is a test in this repo (`cargo test --release`):
@@ -90,10 +117,11 @@ Every number below is a test in this repo (`cargo test --release`):
 
 | Crate | What | Deps |
 |---|---|---|
-| [`pragmatic`](crates/pragmatic) | The runtime: Journal, Oracle, Ctx, Runtime, Supervisor, IFC memory, capabilities | **zero** |
-| [`pragmatic-macros`](crates/pragmatic-macros) | `#[pragmatic::durable]` — program identity, journaled and verified | **zero** |
-| [`pragmatic-anthropic`](crates/pragmatic-anthropic) | Claude as a journaled Oracle (Messages API) | `ureq`, `serde_json` |
-| [`pragmatic-cli`](crates/pragmatic-cli) | `pragmatic runs / show / verify / export` — incl. a self-contained HTML replay console | **zero** |
+| [`pragmatic`](crates/pragmatic) | The runtime, sync **and async**: Journal, Oracle, Ctx, Runtime, AsyncRuntime, Supervisor, IFC memory, capabilities | **zero** |
+| [`pragmatic-macros`](crates/pragmatic-macros) | `#[pragmatic::durable]` — program identity, journaled and verified (sync and async fns) | **zero** |
+| [`pragmatic-anthropic`](crates/pragmatic-anthropic) | Claude as a journaled Oracle (Messages API), wire-tested over real sockets | `ureq`, `serde_json` |
+| [`pragmatic-cli`](crates/pragmatic-cli) | `pragmatic runs / show / verify / export / serve` — HTML replay console, exportable or served live | **zero** |
+| [`pragmatic-python`](crates/pragmatic-python) | The runtime from Python (`pip install pragmatic-runtime`); journals byte-compatible with Rust | `pyo3` |
 
 Implement `Oracle` for any model client — Anthropic, OpenAI, a local server,
 any step whose result is a draw from a distribution. The core links into the
@@ -102,12 +130,16 @@ agent you already run: Linux, containers, any cloud. Nothing to provision.
 ## The replay console
 
 ```sh
-pragmatic export research-42 --dir ./journals -o run.html
+pragmatic serve --dir ./journals               # live console on 127.0.0.1:7171
+pragmatic export research-42 --dir ./journals  # or a self-contained run.html
 ```
 
-One command turns any run's journal into a self-contained HTML timeline —
-every prompt, outcome, effect intent/commit, and chain hash, with
-verification status. Attach it to the incident ticket; it opens anywhere.
+`serve` gives you a live, self-hostable console over your journal directory:
+every run, its chain status, dangling-effect warnings, and a full timeline
+per run — every prompt, outcome, effect intent/commit, and chain hash.
+`export` produces the same timeline as one HTML file; attach it to the
+incident ticket, it opens anywhere. Loopback-only by default: journals
+contain prompts and outputs.
 
 ## A model, not a cache
 
@@ -123,9 +155,12 @@ verification status. Attach it to the incident ticket; it opens anywhere.
 - **T1** is mechanized in Lean 4 (operational core, sorry-free) and
   demonstrated empirically here. **T2/T3** are pen-and-paper results; the
   runtime implements their disciplines, the theorems are not yet mechanized.
-- v0.2 is synchronous and single-process. Async and the managed cloud
-  backend (hosted journaling, replay console, alerting) are the roadmap —
-  they change ergonomics and operations, not semantics.
+- Single-process journals on local disk. The managed cloud backend (hosted
+  journaling at scale, shared console, alerting) is the commercial layer —
+  it changes operations, not semantics.
+- The Anthropic adapter is wire-tested against a Messages-API-shaped mock
+  over real sockets on every CI run; the live-API test needs a key
+  (`cargo test -p pragmatic-anthropic -- --ignored`).
 - Journals store prompts/completions in plaintext by design (they *are* the
   audit trail). See [SECURITY.md](SECURITY.md).
 

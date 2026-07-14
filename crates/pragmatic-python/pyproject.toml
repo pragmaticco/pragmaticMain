@@ -1,0 +1,27 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "pragmatic-runtime"
+description = "Durable execution for agents that don't run deterministically. Journals every step an agent takes, so it survives any crash and replays exactly — nondeterministic model behavior included."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT OR Apache-2.0" }
+authors = [{ name = "Pragmatic", email = "me@aniketh.net" }]
+keywords = ["agents", "llm", "durable-execution", "replay", "crash-recovery"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://aniketh.net/pragmatic.html"
+Repository = "https://github.com/pragmaticco/pragmaticMain"
+
+[tool.maturin]
+module-name = "pragmatic"
+features = ["pyo3/extension-module"]

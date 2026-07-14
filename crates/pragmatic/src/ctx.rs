@@ -154,22 +154,36 @@ impl<'a> Ctx<'a> {
     /// exactly where the journal ends ([O-resume]).
     pub fn oracle(&mut self, prompt: impl Into<Value>) -> Result<Value, Fault> {
         let prompt = prompt.into();
-        self.charge_budget()?;
+        if let Some(outcome) = self.oracle_replay(&prompt)? {
+            return Ok(outcome);
+        }
+        // [O-rec]: the only probabilistic step. Sample, then journal the
+        // realized outcome in the same atomic step it is consumed (I4).
+        let outcome = self.oracle.call(&prompt)?;
+        let provenance = self.oracle.provenance();
+        self.oracle_commit(prompt, outcome, provenance)
+    }
 
+    /// The replay half of an oracle draw: charge the budget, then either
+    /// serve the recorded outcome ([O-rep]) or signal that a fresh sample is
+    /// required (`None` — [O-resume] fall-through). Shared by the sync and
+    /// async surfaces.
+    pub(crate) fn oracle_replay(&mut self, prompt: &Value) -> Result<Option<Value>, Fault> {
+        self.charge_budget()?;
         if let Some((cursor, event)) = self.replay_next() {
             return match event {
                 Event::OracleDraw {
                     prompt: p, outcome, ..
-                } if p == prompt => {
+                } if p == *prompt => {
                     self.trace.push(TraceLabel::Oracle {
                         cursor,
                         outcome: outcome.clone(),
                     });
-                    Ok(outcome)
+                    Ok(Some(outcome))
                 }
                 other => Err(Fault::JournalDesync {
                     cursor,
-                    expected: format!("OracleDraw({})", preview(&prompt)),
+                    expected: format!("OracleDraw({})", preview(prompt)),
                     found: format!("{other:?}"),
                 }),
             };
@@ -177,14 +191,22 @@ impl<'a> Ctx<'a> {
         if self.strict {
             return Err(Fault::ReplayExhausted { cursor: self.pos });
         }
+        Ok(None)
+    }
 
-        // [O-rec]: the only probabilistic step. Sample, then journal the
-        // realized outcome in the same atomic step it is consumed (I4).
-        let outcome = self.oracle.call(&prompt)?;
+    /// The record half of an oracle draw: journal the realized outcome
+    /// ([O-rec]). Only called after [`oracle_replay`](Self::oracle_replay)
+    /// returned `None`.
+    pub(crate) fn oracle_commit(
+        &mut self,
+        prompt: Value,
+        outcome: Value,
+        provenance: String,
+    ) -> Result<Value, Fault> {
         let cursor = self.journal.append(Event::OracleDraw {
             prompt,
             outcome: outcome.clone(),
-            provenance: self.oracle.provenance(),
+            provenance,
         })?;
         self.journal.sync()?;
         self.pos = self.journal.len();
@@ -253,31 +275,58 @@ impl<'a> Ctx<'a> {
         perform: impl FnOnce(&Value) -> Result<Value, Fault>,
     ) -> Result<Value, Fault> {
         let arg = arg.into();
+        if let Some(result) = self.effect_replay(name, &arg)? {
+            return Ok(result);
+        }
+        self.effect_begin(name, arg.clone())?;
+        // [Eff-perform]: the world acts. A failure here (or a crash) leaves
+        // the dangling intent for recovery — the effect is never orphaned.
+        let result = perform(&arg)?;
+        self.effect_commit(name, result)
+    }
+
+    /// The replay half of a durable effect: capability check, then walk the
+    /// journal. Returns `Some(result)` when a committed effect replays
+    /// ([Eff-rep]); `None` when the effect must be performed fresh — either
+    /// the journal is exhausted here, or every recorded intent for this step
+    /// was closed by a compensation (undone after a crash) and the loop
+    /// consumed those pairs.
+    pub(crate) fn effect_replay(
+        &mut self,
+        name: &str,
+        arg: &Value,
+    ) -> Result<Option<Value>, Fault> {
         if let Some(caps) = &self.caps {
             if !caps.contains(name) {
                 return Err(Fault::CapabilityDenied(name.to_string()));
             }
         }
 
-        // Replay path: consume Intent, then dispatch on what closed it.
-        if let Some((cursor, event)) = self.replay_next() {
-            match event {
-                Event::EffectIntent { name: n, arg: a } if n == name && a == arg => {
+        // A single logical effect may occupy several journaled pairs:
+        // Intent+Compensated (crashed, undone) repeated, then finally
+        // Intent+Commit. Loop until a commit replays or the journal runs out
+        // — falling through after a Compensated pair without continuing the
+        // loop would desync every later step.
+        loop {
+            match self.replay_next() {
+                Some((cursor, Event::EffectIntent { name: n, arg: a }))
+                    if n == name && a == *arg =>
+                {
                     match self.replay_next() {
                         Some((c2, Event::EffectCommit { name: n2, result })) if n2 == name => {
-                            // [Eff-rep]: committed effect replays by reusing
-                            // its recorded result. The world is not touched.
+                            // [Eff-rep]: reuse the recorded result. The
+                            // world is not touched.
                             self.trace.push(TraceLabel::Effect {
                                 cursor: c2,
                                 name: n2,
                                 result: result.clone(),
                             });
-                            return Ok(result);
+                            return Ok(Some(result));
                         }
                         Some((_, Event::EffectCompensated { name: n2 })) if n2 == name => {
-                            // The intent was closed by a compensation: the
-                            // effect was undone after a crash. Fall through
-                            // and perform it fresh.
+                            // Undone after a crash; the next journaled pair
+                            // (or a fresh perform) is the real outcome.
+                            continue;
                         }
                         Some((c2, other)) => {
                             return Err(Fault::JournalDesync {
@@ -301,31 +350,37 @@ impl<'a> Ctx<'a> {
                         }
                     }
                 }
-                other => {
+                Some((cursor, other)) => {
                     return Err(Fault::JournalDesync {
                         cursor,
                         expected: format!("EffectIntent({name})"),
                         found: format!("{other:?}"),
                     });
                 }
+                None => {
+                    if self.strict {
+                        return Err(Fault::ReplayExhausted { cursor: self.pos });
+                    }
+                    return Ok(None);
+                }
             }
-        } else if self.strict {
-            return Err(Fault::ReplayExhausted { cursor: self.pos });
         }
+    }
 
-        // Fresh path — write-ahead: the intent is durable BEFORE the world
-        // can change ([Eff-intent]).
+    /// [Eff-intent]: journal the write-ahead intent — durable BEFORE the
+    /// world can change. Only called after
+    /// [`effect_replay`](Self::effect_replay) returned `None`.
+    pub(crate) fn effect_begin(&mut self, name: &str, arg: Value) -> Result<(), Fault> {
         self.journal.append(Event::EffectIntent {
             name: name.to_string(),
-            arg: arg.clone(),
+            arg,
         })?;
         self.journal.sync()?;
+        Ok(())
+    }
 
-        // [Eff-perform]: the world acts. A failure here (or a crash) leaves
-        // the dangling intent for recovery — the effect is never orphaned.
-        let result = perform(&arg)?;
-
-        // [Eff-commit].
+    /// [Eff-commit]: journal the realized result after the effect succeeds.
+    pub(crate) fn effect_commit(&mut self, name: &str, result: Value) -> Result<Value, Fault> {
         let cursor = self.journal.append(Event::EffectCommit {
             name: name.to_string(),
             result: result.clone(),

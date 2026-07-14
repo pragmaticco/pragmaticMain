@@ -1,0 +1,19 @@
+[package]
+name = "pragmatic-python"
+description = "Python bindings for the Pragmatic durable-execution runtime."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false # distributed via PyPI (maturin), not crates.io
+
+# The importable module is `pragmatic`; the Rust core dependency is renamed
+# so the lib target can claim that name.
+[lib]
+name = "pragmatic"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pragmatic_rt = { package = "pragmatic", version = "0.3.0", path = "../pragmatic", default-features = false }
+pyo3 = { version = "0.24", features = ["abi3-py39"] }

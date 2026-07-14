@@ -4,6 +4,33 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com); versions follow
 [SemVer](https://semver.org) (pre-1.0: minor bumps may break).
 
+## [0.3.0] — 2026-07-14 · customer-ready beta
+
+### Added
+- **Async runtime** (`AsyncOracle`, `AsyncCtx`, `AsyncRuntime`, `block_on`):
+  the same guarantees for `async` agents, executor-agnostic (tokio, smol, or
+  the built-in `block_on`), still zero dependencies. Every sync `Oracle` is
+  automatically usable; `#[pragmatic::durable]` works on `async fn`.
+- **Python bindings** (`pragmatic-python`, PyPI name `pragmatic-runtime`):
+  `Runtime(dir, oracle)` with Python-callable oracles/agents/effects;
+  run/resume/replay/verify/send; faults raise `RuntimeError`. Journals are
+  byte-compatible with the Rust runtime and the CLI.
+- **`pragmatic serve`**: a live, self-hostable web console over a journal
+  directory (run index, chain status, dangling-effect warnings, per-run
+  replay timelines). Loopback-only by default; zero dependencies.
+- **Wire-level validation** of `pragmatic-anthropic`: real-socket tests
+  against a Messages-API mock (success, 429, 529, malformed JSON,
+  connection refused) plus the headline scenario — record on the wire,
+  kill the API, resume and replay from the journal. A `--ignored` test
+  hits the live API when `ANTHROPIC_API_KEY` is set.
+
+### Fixed
+- **Replay divergence** on journals containing a compensated effect
+  followed by its re-performed pair (`Intent, Compensated, Intent,
+  Commit`): the effect replay path now consumes every compensated pair
+  and the final commit instead of desyncing later steps. Regression test
+  included.
+
 ## [0.2.0] — 2026-07-13 · public beta
 
 The first public release. Workspace of four crates:
