@@ -19,7 +19,7 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://aniketh.net/pragmatic.html"
+Homepage = "https://aniketh.net/pragmatic/"
 Repository = "https://github.com/pragmaticco/pragmaticMain"
 
 [tool.maturin]
