@@ -7,8 +7,8 @@ Five minutes from `cargo add` to a crash-proof, replayable agent.
 ```toml
 # Cargo.toml
 [dependencies]
-pragmatic = "0.2"
-pragmatic-anthropic = "0.2"   # or implement Oracle for your own model client
+pragmatic = "0.3"
+pragmatic-anthropic = "0.3"   # or implement Oracle for your own model client
 ```
 
 ## 2. Write the agent

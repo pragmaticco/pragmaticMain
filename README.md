@@ -12,7 +12,7 @@ crash and replays exactly — nondeterministic model behavior included.
 ![Rust](https://img.shields.io/badge/rust-stable-orange.svg)
 ![status: public beta](https://img.shields.io/badge/status-public%20beta-brightgreen.svg)
 
-[Quickstart](docs/quickstart.md) · [Concepts](docs/concepts.md) ·
+[Usage guide](docs/usage.md) · [Quickstart](docs/quickstart.md) · [Concepts](docs/concepts.md) ·
 [Research](https://aniketh.net/pragmatic#research) ·
 [Early access / design partners](mailto:me@aniketh.net?subject=Pragmatic%20early%20access)
 
