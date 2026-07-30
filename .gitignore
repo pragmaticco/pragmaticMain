@@ -2,3 +2,6 @@
 Cargo.lock
 *.journal
 .DS_Store
+
+# Local Claude Code config
+.claude/
