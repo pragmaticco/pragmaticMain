@@ -8,7 +8,7 @@ A Rust runtime that journals every step an agent takes, so it survives any
 crash and replays exactly — nondeterministic model behavior included.
 
 [![CI](https://github.com/pragmaticco/pragmaticMain/actions/workflows/ci.yml/badge.svg)](https://github.com/pragmaticco/pragmaticMain/actions/workflows/ci.yml)
-[![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
+[![License: BUSL-1.1](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](LICENSE)
 ![Rust](https://img.shields.io/badge/rust-stable-orange.svg)
 ![status: public beta](https://img.shields.io/badge/status-public%20beta-brightgreen.svg)
 
@@ -172,6 +172,17 @@ Oracle, Channel, Memory, Journal, Supervisor), probabilistic small-step
 semantics in record and replay modes, and three theorems stated with honest
 scope. [Read the research](https://aniketh.net/pragmatic#research).
 
-## License
+## License & commercial use
 
-MIT OR Apache-2.0, at your option.
+Pragmatic is **source-available** under the
+[Business Source License 1.1](LICENSE) — read it, modify it, self-host it.
+
+- **Free** for non-production use, and for **production use by organizations
+  under US $1M annual revenue** (and not as a competing hosted service). See
+  the [Additional Use Grant](LICENSE) for exact terms.
+- **Production use beyond that requires a commercial license** —
+  [contact us](mailto:me@aniketh.net?subject=Pragmatic%20commercial%20license).
+- Each released version automatically converts to **Apache 2.0** four years
+  after release (its Change Date), so nothing is ever locked up forever.
+
+© 2026 Pragmatic, Inc.
