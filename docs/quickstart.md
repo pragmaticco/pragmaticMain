@@ -7,8 +7,8 @@ Five minutes from `cargo add` to a crash-proof, replayable agent.
 ```toml
 # Cargo.toml
 [dependencies]
-pragmatic = "0.3"
-pragmatic-anthropic = "0.3"   # or implement Oracle for your own model client
+pragmatic = "0.4"
+pragmatic-anthropic = "0.4"   # or implement Oracle for your own model client
 ```
 
 ## 2. Write the agent
@@ -145,5 +145,5 @@ every CLI command above.
   faults, capabilities.
 - `examples/tool_use_retries.rs` — flaky tools under a Supervisor.
 - `examples/map_reduce.rs` — multi-run coordination with per-agent recovery.
-- The [research page](https://aniketh.net/pragmatic#research) — the calculus
+- The [research page](https://aniketh.net/pragmatic/research/) — the calculus
   and proofs underneath.

@@ -45,5 +45,6 @@ version. See [SECURITY.md](SECURITY.md) for anything security-sensitive.
 
 ## License
 
-By contributing you agree your work is dual-licensed under MIT OR
-Apache-2.0, as the project is.
+The project is licensed under the [Business Source License 1.1](LICENSE);
+each released version converts to Apache 2.0 on its Change Date. By
+contributing you agree your work is licensed under the same terms.

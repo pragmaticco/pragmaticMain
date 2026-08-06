@@ -6,10 +6,12 @@ members = [
     "crates/pragmatic-anthropic",
     "crates/pragmatic-cli",
     "crates/pragmatic-python",
+    "crates/pragmatic-ffi",
+    "crates/pragmatic-openai",
 ]
 
 [workspace.package]
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 license = "BUSL-1.1"
 repository = "https://github.com/pragmaticco/pragmaticMain"

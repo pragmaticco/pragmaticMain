@@ -1,7 +1,8 @@
 name: Release
 
 # Tag a release (e.g. `git tag v0.3.0 && git push --tags`) to publish:
-#   - the four Rust crates to crates.io (dependency order handled by cargo)
+#   - the publishable Rust crates to crates.io (dependency order handled by
+#     cargo; publish=false crates like pragmatic-ffi/-python are skipped)
 #   - abi3 wheels + sdist for `pragmatic-runtime` to PyPI
 #
 # Required repo secrets:

@@ -54,8 +54,8 @@ cargo run --example map_reduce          # many runs, per-agent recovery
 ```toml
 # Cargo.toml
 [dependencies]
-pragmatic = "0.3"
-pragmatic-anthropic = "0.3"   # optional: Claude as an Oracle. Skip it to bring your own model.
+pragmatic = "0.4"
+pragmatic-anthropic = "0.4"   # optional: Claude as an Oracle. Skip it to bring your own model.
 ```
 
 ### Python
@@ -133,6 +133,33 @@ let oracle = AnthropicOracle::from_env()?    // reads ANTHROPIC_API_KEY
     .max_tokens(1024);
 
 let mut rt = Runtime::on_dir("./journals", oracle)?;
+```
+
+Or any OpenAI-compatible server — OpenAI itself, or a local Ollama / vLLM /
+llama.cpp with no key at all:
+
+```rust
+use pragmatic_openai::OpenAiOracle;
+
+let oracle = OpenAiOracle::from_env()?       // reads OPENAI_API_KEY
+    .model("gpt-5");
+// ...or, keyless and local:
+let local = OpenAiOracle::new("")
+    .base_url("http://localhost:11434/v1")
+    .model("llama3.3");
+```
+
+Flaky API? Wrap any oracle in bounded retries with doubling backoff —
+retries happen before anything is journaled, so replay never sees the
+failed attempts:
+
+```rust
+use pragmatic::RetryOracle;
+use std::time::Duration;
+
+let oracle = RetryOracle::new(oracle)
+    .max_retries(4)
+    .base_delay(Duration::from_millis(250)); // 250ms, 500ms, 1s, 2s
 ```
 
 The agent function is identical. The only thing that changed is where the
@@ -254,13 +281,16 @@ same files.
 
 ## 8. Bringing your own model
 
-You are not tied to the Anthropic adapter. In Rust, implement the `Oracle`
+You are not tied to the bundled adapters. In Rust, implement the `Oracle`
 trait (one method: given a prompt `Value`, return the drawn `Value`) over any
-client — OpenAI, a local llama.cpp server, a router, anything whose result is
-"a draw from a distribution." In Python, the oracle is already just a
-`(str) -> str` callable, so you wrap whatever SDK you use directly. The
-runtime doesn't care where the outcome came from; it only cares that it gets
-journaled.
+client — a router, a bespoke gateway, anything whose result is "a draw from a
+distribution" (and note `pragmatic-openai` already covers any server that
+speaks Chat Completions: OpenAI, Ollama, vLLM, llama.cpp, Groq, …). In
+Python, the oracle is already just a `(str) -> str` callable, so you wrap
+whatever SDK you use directly — and the same goes for the
+[C++ / Java / Go / Node bindings](../bindings/), where the oracle is a plain
+function in that language. The runtime doesn't care where the outcome came
+from; it only cares that it gets journaled.
 
 ---
 
@@ -298,5 +328,5 @@ like you'd treat your logs, and read [SECURITY.md](../SECURITY.md).
   faults, capabilities, information flow.
 - [`crates/pragmatic/examples/`](../crates/pragmatic/examples) — four runnable
   programs, no API key required.
-- [The research](https://aniketh.net/pragmatic#research) — the calculus and
+- [The research](https://aniketh.net/pragmatic/research/) — the calculus and
   proofs underneath the guarantees.

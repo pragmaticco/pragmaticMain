@@ -4,6 +4,42 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com); versions follow
 [SemVer](https://semver.org) (pre-1.0: minor bumps may break).
 
+## [0.4.0] — 2026-08-06 · polyglot launch
+
+### Added
+- **C ABI** (`pragmatic-ffi`, `include/pragmatic.h`): the full runtime
+  surface — run/resume/replay/send/verify plus ctx oracle/effect/recv/
+  now/contract — as one flat `extern "C"` API with callback-based oracles,
+  agents, and effects. Typed faults cross the boundary intact (budget stays
+  budget, desync stays desync) via a pending-fault channel on the ctx.
+  Zero dependencies; exercised by its own Rust-side C-discipline tests.
+- **Language bindings** (`bindings/`), all on the C ABI, all journaling
+  byte-compatibly with Rust and Python, each with a smoke test running the
+  shared record → resume → replay → verify → typed-fault scenario:
+  - **C++** (`bindings/cpp`): header-only C++17 RAII wrapper; lambdas as
+    oracles/agents/effects; faults as `FaultError`; callback exceptions
+    caught at the boundary.
+  - **Java** (`bindings/java`): pure Java over `java.lang.foreign`
+    (JDK 22+), no JNI glue to compile; try-with-resources runtimes and
+    reports; faults as `FaultException`.
+  - **Go** (`bindings/go`): cgo package with `cgo.Handle`-based callbacks;
+    faults as `*Fault` with typed codes.
+  - **Node.js** (`bindings/node`): pure-JS binding through koffi (Node has
+    no built-in FFI); faults as `FaultError`; JS exceptions from callbacks
+    rethrown intact.
+- **`RetryOracle`** (core): wrap any oracle with bounded retries and
+  doubling backoff on transient `OracleErr` faults — retries happen before
+  anything is journaled, so a completion that finally succeeds is recorded
+  once and replay never sees the failed attempts. Injectable sleeper for
+  tests; provenance names the policy.
+- **`pragmatic-openai`**: any OpenAI-compatible Chat Completions server as
+  a journaled Oracle — OpenAI itself, or Ollama / vLLM / llama.cpp / Groq
+  via `base_url` (keyless servers supported; no Authorization header sent
+  without a key). Wire-tested over real sockets like the Anthropic
+  adapter, including record-on-the-wire → kill-the-API → resume/replay
+  from the journal; a `--ignored` test hits the live API when
+  `OPENAI_API_KEY` is set.
+
 ## [0.3.0] — 2026-07-14 · customer-ready beta
 
 ### Added
@@ -70,4 +106,6 @@ The first public release. Workspace of four crates:
 - E3: O(1) append, flat from 1k to 1M entries (~0.8 µs with full hash
   chaining, release build); ~1000× replay speedup under a 1 ms/draw oracle.
 
+[0.4.0]: https://github.com/pragmaticco/pragmaticMain/releases/tag/v0.4.0
+[0.3.0]: https://github.com/pragmaticco/pragmaticMain/releases/tag/v0.3.0
 [0.2.0]: https://github.com/pragmaticco/pragmaticMain/releases/tag/v0.2.0

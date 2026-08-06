@@ -13,7 +13,7 @@ crash and replays exactly — nondeterministic model behavior included.
 ![status: public beta](https://img.shields.io/badge/status-public%20beta-brightgreen.svg)
 
 [Usage guide](docs/usage.md) · [Quickstart](docs/quickstart.md) · [Concepts](docs/concepts.md) ·
-[Research](https://aniketh.net/pragmatic#research) ·
+[Research](https://aniketh.net/pragmatic/research/) ·
 [Early access / design partners](mailto:me@aniketh.net?subject=Pragmatic%20early%20access)
 
 </div>
@@ -27,7 +27,7 @@ never understands the call. **Pragmatic models it**: each LLM call is a
 first-class probability distribution (the **Oracle**), every realized
 outcome lands in an append-only, hash-chained log (the **Journal**), and
 replay soundness (**T1**) is proved in the
-[Agentical calculus](https://aniketh.net/pragmatic#research) — mechanized in
+[Agentical calculus](https://aniketh.net/pragmatic/research/) — mechanized in
 Lean 4, not assumed.
 
 ## Three guarantees, every run
@@ -100,6 +100,12 @@ audit  = rt.replay("research-42", agent)   # bit-for-bit, model never called
 See [crates/pragmatic-python](crates/pragmatic-python) — journals are
 byte-compatible across Rust and Python, and the CLI reads both.
 
+**C++, Java, Go, Node.js?** The same runtime through one C ABI
+([`pragmatic.h`](crates/pragmatic-ffi/include/pragmatic.h)) — RAII in C++,
+pure-Java FFM (no JNI), cgo, and koffi respectively, each with the full
+record → resume → replay surface and typed faults. See
+[bindings/](bindings/).
+
 ## Measured, not promised
 
 Every number below is a test in this repo (`cargo test --release`):
@@ -120,8 +126,10 @@ Every number below is a test in this repo (`cargo test --release`):
 | [`pragmatic`](crates/pragmatic) | The runtime, sync **and async**: Journal, Oracle, Ctx, Runtime, AsyncRuntime, Supervisor, IFC memory, capabilities | **zero** |
 | [`pragmatic-macros`](crates/pragmatic-macros) | `#[pragmatic::durable]` — program identity, journaled and verified (sync and async fns) | **zero** |
 | [`pragmatic-anthropic`](crates/pragmatic-anthropic) | Claude as a journaled Oracle (Messages API), wire-tested over real sockets | `ureq`, `serde_json` |
+| [`pragmatic-openai`](crates/pragmatic-openai) | Any OpenAI-compatible server (OpenAI, Ollama, vLLM, …) as a journaled Oracle, wire-tested | `ureq`, `serde_json` |
 | [`pragmatic-cli`](crates/pragmatic-cli) | `pragmatic runs / show / verify / export / serve` — HTML replay console, exportable or served live | **zero** |
 | [`pragmatic-python`](crates/pragmatic-python) | The runtime from Python (`pip install pragmatic-runtime`); journals byte-compatible with Rust | `pyo3` |
+| [`pragmatic-ffi`](crates/pragmatic-ffi) | The C ABI behind the [C++ / Java / Go / Node bindings](bindings/) | **zero** |
 
 Implement `Oracle` for any model client — Anthropic, OpenAI, a local server,
 any step whose result is a draw from a distribution. The core links into the
@@ -158,9 +166,10 @@ contain prompts and outputs.
 - Single-process journals on local disk. The managed cloud backend (hosted
   journaling at scale, shared console, alerting) is the commercial layer —
   it changes operations, not semantics.
-- The Anthropic adapter is wire-tested against a Messages-API-shaped mock
-  over real sockets on every CI run; the live-API test needs a key
-  (`cargo test -p pragmatic-anthropic -- --ignored`).
+- The Anthropic and OpenAI adapters are wire-tested against API-shaped mocks
+  over real sockets on every CI run; the live-API tests need a key
+  (`cargo test -p pragmatic-anthropic -- --ignored`, same for
+  `pragmatic-openai`).
 - Journals store prompts/completions in plaintext by design (they *are* the
   audit trail). See [SECURITY.md](SECURITY.md).
 
@@ -170,7 +179,7 @@ Pragmatic's guarantees are real because they are proved. The theory is
 **Agentical** — a probabilistic process calculus with six primitives (Agent,
 Oracle, Channel, Memory, Journal, Supervisor), probabilistic small-step
 semantics in record and replay modes, and three theorems stated with honest
-scope. [Read the research](https://aniketh.net/pragmatic#research).
+scope. [Read the research](https://aniketh.net/pragmatic/research/).
 
 ## License & commercial use
 

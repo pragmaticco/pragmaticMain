@@ -1,0 +1,16 @@
+[package]
+name = "pragmatic-ffi"
+description = "C ABI for the Pragmatic durable-execution runtime — the foundation for the C++, Java, Go, and Node.js bindings."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false # consumed as a cdylib via include/pragmatic.h, not crates.io
+
+[lib]
+name = "pragmatic_ffi"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+pragmatic = { version = "0.4.0", path = "../pragmatic", default-features = false }

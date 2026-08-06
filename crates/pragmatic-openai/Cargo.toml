@@ -1,7 +1,7 @@
 [package]
-name = "pragmatic-anthropic"
-description = "Anthropic Messages API adapter for the Pragmatic durable-execution runtime: Claude as a journaled Oracle."
-keywords = ["anthropic", "claude", "llm", "agents", "durable-execution"]
+name = "pragmatic-openai"
+description = "OpenAI-compatible Chat Completions adapter for the Pragmatic durable-execution runtime: any /v1/chat/completions server as a journaled Oracle."
+keywords = ["openai", "llm", "agents", "durable-execution", "ollama"]
 categories = ["api-bindings"]
 version.workspace = true
 edition.workspace = true

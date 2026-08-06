@@ -15,5 +15,5 @@ name = "pragmatic"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-pragmatic_rt = { package = "pragmatic", version = "0.3.0", path = "../pragmatic", default-features = false }
+pragmatic_rt = { package = "pragmatic", version = "0.4.0", path = "../pragmatic", default-features = false }
 pyo3 = { version = "0.24", features = ["abi3-py39"] }

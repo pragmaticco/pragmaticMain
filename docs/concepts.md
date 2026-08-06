@@ -116,7 +116,7 @@ holds identically everywhere because the mode check runs *before* the
 fresh-sample path, not because an oracle was swapped out. Journals are
 byte-compatible across all three surfaces and the CLI.
 
-## What's deliberately out of scope (v0.3)
+## What's deliberately out of scope (v0.4)
 
 - **Distributed journals**: one process, local files. The managed/cloud
   backend (hosted journaling, shared console, alerting) is the commercial

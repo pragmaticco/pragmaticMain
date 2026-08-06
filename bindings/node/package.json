@@ -1,0 +1,18 @@
+{
+  "name": "@pragmatic/runtime",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Node.js binding for the Pragmatic durable-execution runtime.",
+  "license": "BUSL-1.1",
+  "main": "pragmatic.js",
+  "scripts": {
+    "test": "./test.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pragmaticco/pragmaticMain.git"
+  },
+  "dependencies": {
+    "koffi": "^3.1.4"
+  }
+}

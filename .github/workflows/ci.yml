@@ -66,6 +66,34 @@ jobs:
           cp target/release/libpragmatic.so /tmp/pymod/pragmatic.so
           PYTHONPATH=/tmp/pymod python3 crates/pragmatic-python/tests/smoke.py
 
+  bindings:
+    name: C++ / Java / Go / Node bindings smoke tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "23"
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: C ABI tests
+        run: cargo test -p pragmatic-ffi
+      - name: C++ smoke
+        run: bindings/cpp/test.sh
+      - name: Java smoke
+        run: bindings/java/test.sh
+      - name: Go smoke
+        run: bindings/go/test.sh
+      - name: Node smoke
+        run: bindings/node/test.sh
+
   live-api:
     name: live Anthropic API (needs secret)
     runs-on: ubuntu-latest

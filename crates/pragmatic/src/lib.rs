@@ -67,7 +67,7 @@ pub use ctx::{Ctx, RunOptions, TraceLabel};
 pub use fault::Fault;
 pub use journal::{Cursor, Entry, Event, Journal};
 pub use memory::{Label, Store};
-pub use oracle::{CountingOracle, Oracle, RefusingOracle, SeededOracle};
+pub use oracle::{CountingOracle, Oracle, RefusingOracle, RetryOracle, SeededOracle};
 pub use runtime::{Recover, RunReport, Runtime};
 pub use supervisor::{Decision, Supervisor};
 pub use value::Value;
