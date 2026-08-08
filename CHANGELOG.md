@@ -4,6 +4,31 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com); versions follow
 [SemVer](https://semver.org) (pre-1.0: minor bumps may break).
 
+## [Unreleased]
+
+### Added
+- **Tool use, journaled end to end** (`pragmatic-anthropic`): structured
+  conversations through the same `Oracle` contract. A [`Conversation`]
+  prompt sends the full message history with the oracle's declared tools
+  (`.tools(...)`); the journaled outcome is a [`Turn`] carrying the
+  assistant's content blocks — `tool_use` intact — plus stop reason and
+  token usage. Tools execute as `ctx.effect(...)` under the write-ahead
+  discipline. Wire-tested: the full loop records over real sockets, the
+  API is killed, resume and replay serve every model turn and tool result
+  from the journal, and the tool is performed exactly once, ever. Live
+  example: `cargo run -p pragmatic-anthropic --example tool_loop`.
+  Plain-text prompts are unchanged (and never send tools), so existing
+  journals replay as before.
+- **`docs/STRATEGY.md`**: the durable record of the product wedge
+  (auditability first, zero-token crash recovery second), roadmap order,
+  and what is deliberately out of scope. Bindings for C++/Java/Go/Node are
+  declared stable, maintenance-only.
+
+### Changed
+- README repositioned around the two production pains (runs dying,
+  audits asking what the agent did), featuring the real tool-use loop and
+  an explicit "Why not Temporal (or Restate, Inngest, DBOS)?" comparison.
+
 ## [0.4.0] — 2026-08-06 · polyglot launch
 
 ### Added

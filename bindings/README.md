@@ -7,6 +7,12 @@ C ABI exported by [`crates/pragmatic-ffi`](../crates/pragmatic-ffi)
 are byte-compatible across every language here, plus Rust and Python, and
 the CLI/console read them all.
 
+**Status: stable, maintenance-only.** These bindings track the C ABI and
+receive bug fixes and CI coverage, but new runtime surface lands in Rust,
+Python, and (next) a first-class TypeScript SDK before it lands here — see
+[docs/STRATEGY.md](../docs/STRATEGY.md). If a missing capability blocks a
+real embedding use case, [open an issue](../CONTRIBUTING.md).
+
 Build the shared library once, from the repo root:
 
 ```sh

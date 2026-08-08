@@ -185,6 +185,95 @@ fn durable_run_survives_the_api_disappearing() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+/// The tool-use loop, end to end over real sockets: the model asks for a
+/// tool, the tool runs as a journaled effect, the result goes back, the
+/// model answers — then the API disappears and the whole loop (model turns
+/// AND tool results) replays from the journal with zero calls to either.
+#[test]
+fn tool_loop_records_resumes_and_replays() {
+    use pragmatic_anthropic::{Conversation, Turn};
+    use serde_json::json;
+    use std::cell::Cell;
+
+    let tool_turn = json!({
+        "id": "msg_1", "type": "message", "role": "assistant",
+        "content": [
+            { "type": "text", "text": "Searching." },
+            { "type": "tool_use", "id": "tu_1", "name": "search",
+              "input": { "q": "durable execution" } }
+        ],
+        "model": "claude-sonnet-5", "stop_reason": "tool_use",
+        "usage": { "input_tokens": 20, "output_tokens": 15 }
+    });
+    let final_turn = json!({
+        "id": "msg_2", "type": "message", "role": "assistant",
+        "content": [{ "type": "text", "text": "Found 3 papers." }],
+        "model": "claude-sonnet-5", "stop_reason": "end_turn",
+        "usage": { "input_tokens": 40, "output_tokens": 8 }
+    });
+    let (url, rx, handle) = mock_server(vec![
+        (200, tool_turn.to_string()),
+        (200, final_turn.to_string()),
+    ]);
+
+    let tool_runs = std::rc::Rc::new(Cell::new(0u32));
+    let agent_runs = tool_runs.clone();
+    let agent = move |ctx: &mut pragmatic::Ctx| -> Result<Value, Fault> {
+        let runs = agent_runs.clone();
+        let mut convo = Conversation::user("Find papers on durable execution.");
+        loop {
+            let turn = Turn::parse(&ctx.oracle(convo.prompt())?)?;
+            convo.push_assistant(&turn);
+            if !turn.wants_tools() {
+                return Ok(Value::from(turn.text()));
+            }
+            for call in turn.tool_uses() {
+                let result = ctx.effect("search", call.input.to_string(), |_| {
+                    runs.set(runs.get() + 1);
+                    Ok(Value::from("3 hits"))
+                })?;
+                convo.push_tool_result(&call.id, result.as_str());
+            }
+        }
+    };
+
+    let dir = std::env::temp_dir().join(format!("pragmatic-toolwire-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+
+    let recorded = {
+        let oracle = AnthropicOracle::new("k").base_url(&url).tools(
+            json!([{ "name": "search", "description": "Search the corpus",
+                            "input_schema": { "type": "object" } }]),
+        );
+        let mut rt = Runtime::on_dir(&dir, oracle).unwrap();
+        rt.run("tool-loop", agent.clone()).unwrap()
+    };
+    assert_eq!(recorded.output.as_str(), "Found 3 papers.");
+    assert_eq!(tool_runs.get(), 1);
+
+    // What crossed the wire: tools declared on both calls, and the second
+    // request carried the assistant's tool_use turn plus our tool_result.
+    let first = rx.recv().unwrap();
+    assert!(first.contains(r#""tools":"#));
+    let second = rx.recv().unwrap();
+    assert!(second.contains(r#""type":"tool_use""#));
+    assert!(second.contains(r#""tool_use_id":"tu_1""#));
+    assert!(second.contains("3 hits"));
+    handle.join().unwrap(); // the API is now GONE
+
+    // New process, dead endpoint: resume and replay serve every model turn
+    // and every tool result from the journal — the tool does not run again.
+    let oracle = AnthropicOracle::new("k").base_url("http://127.0.0.1:1");
+    let mut rt = Runtime::on_dir(&dir, oracle).unwrap();
+    let resumed = rt.resume("tool-loop", agent.clone()).unwrap();
+    assert_eq!(resumed.trace, recorded.trace);
+    let audit = rt.replay("tool-loop", agent).unwrap();
+    assert_eq!(audit.trace, recorded.trace);
+    assert_eq!(tool_runs.get(), 1, "tool performed exactly once, ever");
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 /// Hits the real Anthropic API. Ignored by default; run explicitly:
 /// `ANTHROPIC_API_KEY=... cargo test -p pragmatic-anthropic -- --ignored`
 #[test]

@@ -2,10 +2,9 @@
 
 # Pragmatic
 
-**Durable execution for agents that don't run deterministically.**
-
-A Rust runtime that journals every step an agent takes, so it survives any
-crash and replays exactly — nondeterministic model behavior included.
+**The black-box recorder for LLM agents: crash recovery that never
+re-pays for a token, and a tamper-evident journal that proves what your
+agent actually did.**
 
 [![CI](https://github.com/pragmaticco/pragmaticMain/actions/workflows/ci.yml/badge.svg)](https://github.com/pragmaticco/pragmaticMain/actions/workflows/ci.yml)
 [![License: BUSL-1.1](https://img.shields.io/badge/license-BUSL--1.1-blue.svg)](LICENSE)
@@ -13,22 +12,35 @@ crash and replays exactly — nondeterministic model behavior included.
 ![status: public beta](https://img.shields.io/badge/status-public%20beta-brightgreen.svg)
 
 [Usage guide](docs/usage.md) · [Quickstart](docs/quickstart.md) · [Concepts](docs/concepts.md) ·
-[Research](https://aniketh.net/pragmatic/research/) ·
+[Strategy](docs/STRATEGY.md) · [Research](https://aniketh.net/pragmatic/research/) ·
 [Early access / design partners](mailto:me@aniketh.net?subject=Pragmatic%20early%20access)
 
 </div>
 
 ---
 
-Durable execution made software reliable. But its replay model assumes
-determinism, and LLM agents are not deterministic. Every existing engine
-hacks around that by caching model outputs as opaque activities — the engine
-never understands the call. **Pragmatic models it**: each LLM call is a
-first-class probability distribution (the **Oracle**), every realized
-outcome lands in an append-only, hash-chained log (the **Journal**), and
-replay soundness (**T1**) is proved in the
-[Agentical calculus](https://aniketh.net/pragmatic/research/) — mechanized in
-Lean 4, not assumed.
+Two things go wrong with agents in production, and they are expensive in
+different currencies:
+
+1. **The run dies.** An agent 900 steps into a 1,000-step job crashes — and
+   naive retry re-runs the whole thing, re-paying for every token and
+   possibly re-executing side effects. Pragmatic resumes **on** step 901:
+   recorded outcomes are read back, not re-sampled; committed effects are
+   not re-performed.
+2. **Someone asks what the agent did.** An incident review, a customer, an
+   auditor. Pragmatic replays the entire run **bit-for-bit** from an
+   append-only, SHA-256 hash-chained journal — every prompt, every model
+   turn, every tool call and its result — with the model never consulted.
+   Any post-hoc edit to the journal breaks the chain at that exact cursor.
+
+Durable execution engines can give you a version of (1) if you wrap every
+model call as an opaque cached activity and keep everything around it
+deterministic yourself. They were never built for (2). Pragmatic is built
+for both, and the reason it can be is the thesis: **each LLM call is
+modeled as a first-class probability distribution** (the **Oracle**), every
+realized outcome lands in the **Journal**, and replay soundness (**T1**) is
+proved in the [Agentical calculus](https://aniketh.net/pragmatic/research/)
+— mechanized in Lean 4, not assumed.
 
 ## Three guarantees, every run
 
@@ -41,70 +53,58 @@ Lean 4, not assumed.
 3. **Replay faithfully.** Reproduce the entire run bit-for-bit for
    time-travel debugging and audit — with the model never consulted.
 
-## Durable in one wrapper
+## A real agent, durable end to end
+
+Not a toy prompt loop — a Messages-API tool-use agent. Claude decides when
+to call tools, each tool runs as a write-ahead journaled effect, and the
+whole loop records, resumes, and replays:
 
 ```rust
 use pragmatic::{Ctx, Fault, Runtime, Value};
-use pragmatic_anthropic::AnthropicOracle;
+use pragmatic_anthropic::{AnthropicOracle, Conversation, Turn};
+use serde_json::json;
 
-// Wrap the run. Every oracle call is journaled once, and the program's
-// identity is verified on every replay.
 #[pragmatic::durable]
 fn research(ctx: &mut Ctx) -> Result<Value, Fault> {
-    let plan = ctx.oracle("plan the task")?;                    // journaled
-    let mut out = Vec::new();
-    for step in 0..1000 {
-        out.push(ctx.oracle(format!("probe {step}: {plan}"))?); // journaled
+    let mut convo = Conversation::user("Find papers on durable execution.");
+    loop {
+        let turn = Turn::parse(&ctx.oracle(convo.prompt())?)?;   // journaled draw
+        convo.push_assistant(&turn);
+        if !turn.wants_tools() {
+            return Ok(Value::from(turn.text()));
+        }
+        for call in turn.tool_uses() {
+            let result = ctx.effect(&call.name, call.input.to_string(), |input| {
+                Ok(search_corpus(input))            // write-ahead journaled effect
+            })?;
+            convo.push_tool_result(&call.id, result.as_str());
+        }
     }
-    ctx.effect("publish", format!("{} findings", out.len()), |arg| {
-        Ok(Value::from(format!("s3://reports/{arg}")))          // write-ahead journaled
-    })
 }
 
-let oracle = AnthropicOracle::from_env()?.model("claude-sonnet-5");
-let mut rt = Runtime::on_dir("./journals", oracle)?;
+let oracle = AnthropicOracle::from_env()?
+    .model("claude-sonnet-5")
+    .tools(json!([{ "name": "search_corpus", /* … */ }]));
 
+let mut rt = Runtime::on_dir("./journals", oracle)?;
 let report  = rt.run("research-42", research)?;    // record
-// Crash on step nine of a thousand?
-let resumed = rt.resume("research-42", research)?; // resume ON step nine — no re-sampling
+// Crash mid-loop? Every prior model turn AND tool result replays from
+// the journal; the world is not touched again.
+let resumed = rt.resume("research-42", research)?; // resume — no re-sampling
 let audit   = rt.replay("research-42", research)?; // replay bit-for-bit — T1
 assert_eq!(audit.trace, resumed.trace);
 ```
 
-Try it without a model: `cargo run -p pragmatic --example research_agent`
+Run it live: `ANTHROPIC_API_KEY=... cargo run -p pragmatic-anthropic --example tool_loop`
+Try the runtime without a model: `cargo run -p pragmatic --example research_agent`
 
 **Async?** Same guarantees, `await`ed — executor-agnostic (tokio, smol, or
-the built-in `block_on`), still zero dependencies:
-
-```rust
-#[pragmatic::durable]
-async fn research(ctx: &mut AsyncCtx<'_, MyOracle>) -> Result<Value, Fault> {
-    let plan = ctx.oracle("plan the task").await?;               // journaled
-    ctx.effect("publish", plan, async |arg| { /* awaited tool call */
-        Ok(Value::from(format!("s3://{arg}"))) }).await
-}
-let mut rt = AsyncRuntime::on_dir("./journals", oracle)?;
-let report = rt.run("research-42", research).await?;
-```
-
-**Python?** The same runtime, importable:
-
-```python
-import pragmatic
-rt = pragmatic.Runtime("./journals", my_model_fn)
-report = rt.run("research-42", agent)      # record
-report = rt.resume("research-42", agent)   # crash-recover, no re-sampling
-audit  = rt.replay("research-42", agent)   # bit-for-bit, model never called
-```
-
-See [crates/pragmatic-python](crates/pragmatic-python) — journals are
-byte-compatible across Rust and Python, and the CLI reads both.
-
-**C++, Java, Go, Node.js?** The same runtime through one C ABI
-([`pragmatic.h`](crates/pragmatic-ffi/include/pragmatic.h)) — RAII in C++,
-pure-Java FFM (no JNI), cgo, and koffi respectively, each with the full
-record → resume → replay surface and typed faults. See
-[bindings/](bindings/).
+the built-in `block_on`), still zero dependencies (`AsyncRuntime`, see
+[docs/usage.md](docs/usage.md)). **Python?** The same runtime, importable —
+`pip install pragmatic-runtime`; journals are byte-compatible with Rust and
+the CLI ([crates/pragmatic-python](crates/pragmatic-python)). **C++, Java,
+Go, Node.js?** One C ABI ([bindings/](bindings/)), full record → resume →
+replay surface, typed faults.
 
 ## Measured, not promised
 
@@ -114,10 +114,26 @@ Every number below is a test in this repo (`cargo test --release`):
 |---|---|
 | **Replay determinism** (E1) | 1000 / 1000 seeded stochastic runs replay byte-identically, zero model calls |
 | **Crash recovery** (E2) | Crash at *every* journal prefix → exact resume; no re-sampling; no orphaned effects; survives process restarts |
+| **Tool-use loop** | Full Messages-API tool loop recorded over real sockets; API killed; resume + replay byte-identical; tool performed exactly once, ever |
 | **Journal overhead** (E3) | O(1) append, flat from 1k to 1M entries (~0.8 µs incl. full SHA-256 chaining) |
 | **Replay speedup** (E3) | ~1000× under a 1 ms/draw oracle — replay performs zero oracle calls |
 | **Tamper evidence** | Any post-hoc edit breaks the chain at that cursor; HMAC-keyed journals refuse the wrong key |
 | **Code-change safety** | A journal recorded under one agent version refuses to replay under another (`JournalDesync` at cursor 0) |
+
+## Why not Temporal (or Restate, Inngest, DBOS)?
+
+If you already run one of these for general workflows, keep it — they are
+excellent at what they were built for. Pragmatic exists for when **the
+agent itself** must be recoverable and auditable:
+
+| | Generic durable execution | Pragmatic |
+|---|---|---|
+| The model call | Opaque activity; cached output the engine never understands | A probability distribution the runtime models |
+| Determinism discipline | You keep the workflow code deterministic; a violation surfaces as a confusing divergent replay | The determinism boundary is principled (Oracle/effect/clock/recv are *the* nondeterminism); a changed agent fails loudly at cursor 0 before any step can misreplay |
+| The history | Engine-internal state | An audit artifact: hash-chained, tamper-evident, optionally HMAC-keyed, exportable as a single HTML file you attach to the incident ticket |
+| Replay for audit | Re-run your code against history inside the engine | A first-class mode in which the model is *provably* never consulted (the oracle is replaced by one that refuses) |
+| Operations | A cluster/service to provision | A zero-dependency library that links into the agent you already run — Linux, containers, any cloud |
+| Soundness | Assumed, given your discipline | Proved (T1), mechanized in Lean 4; probability bounds (T3) and information-flow discipline (T2) on paper |
 
 ## The workspace
 
@@ -125,7 +141,7 @@ Every number below is a test in this repo (`cargo test --release`):
 |---|---|---|
 | [`pragmatic`](crates/pragmatic) | The runtime, sync **and async**: Journal, Oracle, Ctx, Runtime, AsyncRuntime, Supervisor, IFC memory, capabilities | **zero** |
 | [`pragmatic-macros`](crates/pragmatic-macros) | `#[pragmatic::durable]` — program identity, journaled and verified (sync and async fns) | **zero** |
-| [`pragmatic-anthropic`](crates/pragmatic-anthropic) | Claude as a journaled Oracle (Messages API), wire-tested over real sockets | `ureq`, `serde_json` |
+| [`pragmatic-anthropic`](crates/pragmatic-anthropic) | Claude as a journaled Oracle — plain completions **and full tool-use loops** (Messages API), wire-tested over real sockets | `ureq`, `serde_json` |
 | [`pragmatic-openai`](crates/pragmatic-openai) | Any OpenAI-compatible server (OpenAI, Ollama, vLLM, …) as a journaled Oracle, wire-tested | `ureq`, `serde_json` |
 | [`pragmatic-cli`](crates/pragmatic-cli) | `pragmatic runs / show / verify / export / serve` — HTML replay console, exportable or served live | **zero** |
 | [`pragmatic-python`](crates/pragmatic-python) | The runtime from Python (`pip install pragmatic-runtime`); journals byte-compatible with Rust | `pyo3` |
@@ -133,7 +149,7 @@ Every number below is a test in this repo (`cargo test --release`):
 
 Implement `Oracle` for any model client — Anthropic, OpenAI, a local server,
 any step whose result is a draw from a distribution. The core links into the
-agent you already run: Linux, containers, any cloud. Nothing to provision.
+agent you already run. Nothing to provision.
 
 ## The replay console
 
@@ -144,19 +160,10 @@ pragmatic export research-42 --dir ./journals  # or a self-contained run.html
 
 `serve` gives you a live, self-hostable console over your journal directory:
 every run, its chain status, dangling-effect warnings, and a full timeline
-per run — every prompt, outcome, effect intent/commit, and chain hash.
+per run — every prompt, model turn, effect intent/commit, and chain hash.
 `export` produces the same timeline as one HTML file; attach it to the
 incident ticket, it opens anywhere. Loopback-only by default: journals
 contain prompts and outputs.
-
-## A model, not a cache
-
-| | Generic durable execution | Pragmatic |
-|---|---|---|
-| The model call | Opaque activity; cached output | A probability distribution the runtime understands |
-| Replay soundness | Sound only if *you* keep surrounding code deterministic | Proved (T1), mechanized in Lean 4; determinism boundary is principled |
-| Probabilistic reasoning | — | Compositional probability bounds (T3) |
-| Information flow | — | Noninterference discipline at the runtime level (T2) |
 
 ## Honest scope
 
@@ -169,7 +176,9 @@ contain prompts and outputs.
 - The Anthropic and OpenAI adapters are wire-tested against API-shaped mocks
   over real sockets on every CI run; the live-API tests need a key
   (`cargo test -p pragmatic-anthropic -- --ignored`, same for
-  `pragmatic-openai`).
+  `pragmatic-openai`). Structured tool-use conversations are currently an
+  Anthropic-adapter feature; OpenAI-adapter parity is next
+  ([strategy](docs/STRATEGY.md)).
 - Journals store prompts/completions in plaintext by design (they *are* the
   audit trail). See [SECURITY.md](SECURITY.md).
 

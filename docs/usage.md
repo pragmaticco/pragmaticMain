@@ -328,5 +328,8 @@ like you'd treat your logs, and read [SECURITY.md](../SECURITY.md).
   faults, capabilities, information flow.
 - [`crates/pragmatic/examples/`](../crates/pragmatic/examples) — four runnable
   programs, no API key required.
+- [`crates/pragmatic-anthropic/examples/tool_loop.rs`](../crates/pragmatic-anthropic/examples/tool_loop.rs)
+  — a real Messages-API tool-use agent, durable end to end: `Conversation`
+  in, `Turn` out, every tool call a write-ahead journaled effect.
 - [The research](https://aniketh.net/pragmatic/research/) — the calculus and
   proofs underneath the guarantees.
