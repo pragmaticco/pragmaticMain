@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com); versions follow
 [SemVer](https://semver.org) (pre-1.0: minor bumps may break).
 
-## [Unreleased]
+## [0.4.0] - 2026-08-08 · polyglot launch
 
 ### Added
 - **Tool use, journaled end to end** (`pragmatic-anthropic`): structured
@@ -24,14 +24,6 @@ All notable changes to this project are documented here. The format follows
   and what is deliberately out of scope. Bindings for C++/Java/Go/Node are
   declared stable, maintenance-only.
 
-### Changed
-- README repositioned around the two production pains (runs dying,
-  audits asking what the agent did), featuring the real tool-use loop and
-  an explicit "Why not Temporal (or Restate, Inngest, DBOS)?" comparison.
-
-## [0.4.0] - 2026-08-06 · polyglot launch
-
-### Added
 - **C ABI** (`pragmatic-ffi`, `include/pragmatic.h`): the full runtime
   surface - run/resume/replay/send/verify plus ctx oracle/effect/recv/
   now/contract - as one flat `extern "C"` API with callback-based oracles,
@@ -64,6 +56,16 @@ All notable changes to this project are documented here. The format follows
   adapter, including record-on-the-wire → kill-the-API → resume/replay
   from the journal; a `--ignored` test hits the live API when
   `OPENAI_API_KEY` is set.
+
+### Changed
+- **License**: relicensed from MIT OR Apache-2.0 to the
+  [Business Source License 1.1](LICENSE). Free for non-production use, and
+  for production use by organizations under US $1M annual revenue; each
+  released version converts to Apache 2.0 on its Change Date, four years
+  after release. The Licensor is **Pragmatic Research, Inc.**
+- README repositioned around the two production pains (runs dying,
+  audits asking what the agent did), featuring the real tool-use loop and
+  an explicit "Why not Temporal (or Restate, Inngest, DBOS)?" comparison.
 
 ## [0.3.0] - 2026-07-14 · customer-ready beta
 
