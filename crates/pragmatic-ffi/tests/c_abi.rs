@@ -21,14 +21,16 @@ unsafe fn give(s: &str) -> *mut c_char {
     prag_str_new(c.as_ptr())
 }
 
-static ORACLE_CALLS: AtomicU64 = AtomicU64::new(0);
-
+/// Counts draws through the runtime's `user` pointer, the way a C caller
+/// would thread state to a callback. Each test owns its counter, so tests
+/// stay isolated when the harness runs them in parallel.
 unsafe extern "C" fn counting_oracle(
-    _user: *mut c_void,
+    user: *mut c_void,
     prompt: *const c_char,
     _err: *mut *mut c_char,
 ) -> *mut c_char {
-    let n = ORACLE_CALLS.fetch_add(1, Ordering::SeqCst);
+    let calls = &*(user as *const AtomicU64);
+    let n = calls.fetch_add(1, Ordering::SeqCst);
     let p = CStr::from_ptr(prompt).to_string_lossy();
     give(&format!("completion#{n}({p})"))
 }
@@ -129,6 +131,8 @@ fn trace_fingerprint(r: *const PragReport) -> Vec<(i32, u64, String)> {
 #[test]
 fn record_resume_replay_via_c_abi() {
     unsafe {
+        static CALLS: AtomicU64 = AtomicU64::new(0);
+
         let dir = std::env::temp_dir().join(format!("prag-ffi-test-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         let dir_c = CString::new(dir.to_str().unwrap()).unwrap();
@@ -138,7 +142,7 @@ fn record_resume_replay_via_c_abi() {
         let rt = prag_runtime_open(
             dir_c.as_ptr(),
             counting_oracle,
-            std::ptr::null_mut(),
+            &CALLS as *const AtomicU64 as *mut c_void,
             key.as_ptr(),
             key.len(),
             &mut err,
@@ -148,7 +152,7 @@ fn record_resume_replay_via_c_abi() {
         let run_id = CString::new("ffi-research-1").unwrap();
 
         // Record.
-        ORACLE_CALLS.store(0, Ordering::SeqCst);
+        CALLS.store(0, Ordering::SeqCst);
         let mut report: *mut PragReport = std::ptr::null_mut();
         let code = prag_runtime_run(
             rt,
@@ -159,7 +163,7 @@ fn record_resume_replay_via_c_abi() {
             &mut err,
         );
         assert_eq!(code, PRAG_OK, "run failed: {}", take(err));
-        assert_eq!(ORACLE_CALLS.load(Ordering::SeqCst), 4);
+        assert_eq!(CALLS.load(Ordering::SeqCst), 4);
         let output = take(prag_report_output(report));
         assert_eq!(output, "report(3 FINDINGS)");
         assert_eq!(prag_report_fresh_steps(report), 4);
@@ -180,7 +184,7 @@ fn record_resume_replay_via_c_abi() {
             &mut err,
         );
         assert_eq!(code, PRAG_OK, "resume failed: {}", take(err));
-        assert_eq!(ORACLE_CALLS.load(Ordering::SeqCst), 4, "resume re-sampled");
+        assert_eq!(CALLS.load(Ordering::SeqCst), 4, "resume re-sampled");
         assert_eq!(prag_report_fresh_steps(resumed), 0);
         prag_report_free(resumed);
 
@@ -195,7 +199,7 @@ fn record_resume_replay_via_c_abi() {
             &mut err,
         );
         assert_eq!(code, PRAG_OK, "replay failed: {}", take(err));
-        assert_eq!(ORACLE_CALLS.load(Ordering::SeqCst), 4, "replay hit model");
+        assert_eq!(CALLS.load(Ordering::SeqCst), 4, "replay hit model");
         assert_eq!(trace_fingerprint(audit), recorded_trace);
         prag_report_free(audit);
 
@@ -214,11 +218,13 @@ fn record_resume_replay_via_c_abi() {
 #[test]
 fn typed_faults_survive_the_boundary() {
     unsafe {
+        static CALLS: AtomicU64 = AtomicU64::new(0);
+
         let mut err: *mut c_char = std::ptr::null_mut();
         let rt = prag_runtime_open(
             std::ptr::null(), // in-memory
             counting_oracle,
-            std::ptr::null_mut(),
+            &CALLS as *const AtomicU64 as *mut c_void,
             std::ptr::null(),
             0,
             &mut err,
@@ -246,11 +252,13 @@ fn typed_faults_survive_the_boundary() {
 #[test]
 fn channels_and_version() {
     unsafe {
+        static CALLS: AtomicU64 = AtomicU64::new(0);
+
         let mut err: *mut c_char = std::ptr::null_mut();
         let rt = prag_runtime_open(
             std::ptr::null(),
             counting_oracle,
-            std::ptr::null_mut(),
+            &CALLS as *const AtomicU64 as *mut c_void,
             std::ptr::null(),
             0,
             &mut err,
