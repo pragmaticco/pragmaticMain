@@ -22,15 +22,15 @@ agent actually did.**
 Two things go wrong with agents in production, and they are expensive in
 different currencies:
 
-1. **The run dies.** An agent 900 steps into a 1,000-step job crashes — and
+1. **The run dies.** An agent 900 steps into a 1,000-step job crashes - and
    naive retry re-runs the whole thing, re-paying for every token and
    possibly re-executing side effects. Pragmatic resumes **on** step 901:
    recorded outcomes are read back, not re-sampled; committed effects are
    not re-performed.
 2. **Someone asks what the agent did.** An incident review, a customer, an
    auditor. Pragmatic replays the entire run **bit-for-bit** from an
-   append-only, SHA-256 hash-chained journal — every prompt, every model
-   turn, every tool call and its result — with the model never consulted.
+   append-only, SHA-256 hash-chained journal - every prompt, every model
+   turn, every tool call and its result - with the model never consulted.
    Any post-hoc edit to the journal breaks the chain at that exact cursor.
 
 Durable execution engines can give you a version of (1) if you wrap every
@@ -40,22 +40,22 @@ for both, and the reason it can be is the thesis: **each LLM call is
 modeled as a first-class probability distribution** (the **Oracle**), every
 realized outcome lands in the **Journal**, and replay soundness (**T1**) is
 proved in the [Agentical calculus](https://aniketh.net/pragmatic/research/)
-— mechanized in Lean 4, not assumed.
+- mechanized in Lean 4, not assumed.
 
 ## Three guarantees, every run
 
 1. **Journal every step.** Each model call's realized outcome is recorded to
-   an append-only log as the run proceeds — the source of truth for what the
+   an append-only log as the run proceeds - the source of truth for what the
    agent actually did.
 2. **Recover from any crash.** Resume exactly where the agent stopped;
    recorded outcomes are read back instead of re-sampled. No duplicate model
    calls, no divergent paths, no lost work.
 3. **Replay faithfully.** Reproduce the entire run bit-for-bit for
-   time-travel debugging and audit — with the model never consulted.
+   time-travel debugging and audit - with the model never consulted.
 
 ## A real agent, durable end to end
 
-Not a toy prompt loop — a Messages-API tool-use agent. Claude decides when
+Not a toy prompt loop - a Messages-API tool-use agent. Claude decides when
 to call tools, each tool runs as a write-ahead journaled effect, and the
 whole loop records, resumes, and replays:
 
@@ -90,17 +90,17 @@ let mut rt = Runtime::on_dir("./journals", oracle)?;
 let report  = rt.run("research-42", research)?;    // record
 // Crash mid-loop? Every prior model turn AND tool result replays from
 // the journal; the world is not touched again.
-let resumed = rt.resume("research-42", research)?; // resume — no re-sampling
-let audit   = rt.replay("research-42", research)?; // replay bit-for-bit — T1
+let resumed = rt.resume("research-42", research)?; // resume - no re-sampling
+let audit   = rt.replay("research-42", research)?; // replay bit-for-bit - T1
 assert_eq!(audit.trace, resumed.trace);
 ```
 
 Run it live: `ANTHROPIC_API_KEY=... cargo run -p pragmatic-anthropic --example tool_loop`
 Try the runtime without a model: `cargo run -p pragmatic --example research_agent`
 
-**Async?** Same guarantees, `await`ed — executor-agnostic (tokio, smol, or
+**Async?** Same guarantees, `await`ed - executor-agnostic (tokio, smol, or
 the built-in `block_on`), still zero dependencies (`AsyncRuntime`, see
-[docs/usage.md](docs/usage.md)). **Python?** The same runtime, importable —
+[docs/usage.md](docs/usage.md)). **Python?** The same runtime, importable -
 `pip install pragmatic-runtime`; journals are byte-compatible with Rust and
 the CLI ([crates/pragmatic-python](crates/pragmatic-python)). **C++, Java,
 Go, Node.js?** One C ABI ([bindings/](bindings/)), full record → resume →
@@ -116,13 +116,13 @@ Every number below is a test in this repo (`cargo test --release`):
 | **Crash recovery** (E2) | Crash at *every* journal prefix → exact resume; no re-sampling; no orphaned effects; survives process restarts |
 | **Tool-use loop** | Full Messages-API tool loop recorded over real sockets; API killed; resume + replay byte-identical; tool performed exactly once, ever |
 | **Journal overhead** (E3) | O(1) append, flat from 1k to 1M entries (~0.8 µs incl. full SHA-256 chaining) |
-| **Replay speedup** (E3) | ~1000× under a 1 ms/draw oracle — replay performs zero oracle calls |
+| **Replay speedup** (E3) | ~1000× under a 1 ms/draw oracle - replay performs zero oracle calls |
 | **Tamper evidence** | Any post-hoc edit breaks the chain at that cursor; HMAC-keyed journals refuse the wrong key |
 | **Code-change safety** | A journal recorded under one agent version refuses to replay under another (`JournalDesync` at cursor 0) |
 
 ## Why not Temporal (or Restate, Inngest, DBOS)?
 
-If you already run one of these for general workflows, keep it — they are
+If you already run one of these for general workflows, keep it - they are
 excellent at what they were built for. Pragmatic exists for when **the
 agent itself** must be recoverable and auditable:
 
@@ -132,7 +132,7 @@ agent itself** must be recoverable and auditable:
 | Determinism discipline | You keep the workflow code deterministic; a violation surfaces as a confusing divergent replay | The determinism boundary is principled (Oracle/effect/clock/recv are *the* nondeterminism); a changed agent fails loudly at cursor 0 before any step can misreplay |
 | The history | Engine-internal state | An audit artifact: hash-chained, tamper-evident, optionally HMAC-keyed, exportable as a single HTML file you attach to the incident ticket |
 | Replay for audit | Re-run your code against history inside the engine | A first-class mode in which the model is *provably* never consulted (the oracle is replaced by one that refuses) |
-| Operations | A cluster/service to provision | A zero-dependency library that links into the agent you already run — Linux, containers, any cloud |
+| Operations | A cluster/service to provision | A zero-dependency library that links into the agent you already run - Linux, containers, any cloud |
 | Soundness | Assumed, given your discipline | Proved (T1), mechanized in Lean 4; probability bounds (T3) and information-flow discipline (T2) on paper |
 
 ## The workspace
@@ -140,14 +140,14 @@ agent itself** must be recoverable and auditable:
 | Crate | What | Deps |
 |---|---|---|
 | [`pragmatic`](crates/pragmatic) | The runtime, sync **and async**: Journal, Oracle, Ctx, Runtime, AsyncRuntime, Supervisor, IFC memory, capabilities | **zero** |
-| [`pragmatic-macros`](crates/pragmatic-macros) | `#[pragmatic::durable]` — program identity, journaled and verified (sync and async fns) | **zero** |
-| [`pragmatic-anthropic`](crates/pragmatic-anthropic) | Claude as a journaled Oracle — plain completions **and full tool-use loops** (Messages API), wire-tested over real sockets | `ureq`, `serde_json` |
+| [`pragmatic-macros`](crates/pragmatic-macros) | `#[pragmatic::durable]` - program identity, journaled and verified (sync and async fns) | **zero** |
+| [`pragmatic-anthropic`](crates/pragmatic-anthropic) | Claude as a journaled Oracle - plain completions **and full tool-use loops** (Messages API), wire-tested over real sockets | `ureq`, `serde_json` |
 | [`pragmatic-openai`](crates/pragmatic-openai) | Any OpenAI-compatible server (OpenAI, Ollama, vLLM, …) as a journaled Oracle, wire-tested | `ureq`, `serde_json` |
-| [`pragmatic-cli`](crates/pragmatic-cli) | `pragmatic runs / show / verify / export / serve` — HTML replay console, exportable or served live | **zero** |
+| [`pragmatic-cli`](crates/pragmatic-cli) | `pragmatic runs / show / verify / export / serve` - HTML replay console, exportable or served live | **zero** |
 | [`pragmatic-python`](crates/pragmatic-python) | The runtime from Python (`pip install pragmatic-runtime`); journals byte-compatible with Rust | `pyo3` |
 | [`pragmatic-ffi`](crates/pragmatic-ffi) | The C ABI behind the [C++ / Java / Go / Node bindings](bindings/) | **zero** |
 
-Implement `Oracle` for any model client — Anthropic, OpenAI, a local server,
+Implement `Oracle` for any model client - Anthropic, OpenAI, a local server,
 any step whose result is a draw from a distribution. The core links into the
 agent you already run. Nothing to provision.
 
@@ -160,7 +160,7 @@ pragmatic export research-42 --dir ./journals  # or a self-contained run.html
 
 `serve` gives you a live, self-hostable console over your journal directory:
 every run, its chain status, dangling-effect warnings, and a full timeline
-per run — every prompt, model turn, effect intent/commit, and chain hash.
+per run - every prompt, model turn, effect intent/commit, and chain hash.
 `export` produces the same timeline as one HTML file; attach it to the
 incident ticket, it opens anywhere. Loopback-only by default: journals
 contain prompts and outputs.
@@ -171,7 +171,7 @@ contain prompts and outputs.
   demonstrated empirically here. **T2/T3** are pen-and-paper results; the
   runtime implements their disciplines, the theorems are not yet mechanized.
 - Single-process journals on local disk. The managed cloud backend (hosted
-  journaling at scale, shared console, alerting) is the commercial layer —
+  journaling at scale, shared console, alerting) is the commercial layer -
   it changes operations, not semantics.
 - The Anthropic and OpenAI adapters are wire-tested against API-shaped mocks
   over real sockets on every CI run; the live-API tests need a key
@@ -185,7 +185,7 @@ contain prompts and outputs.
 ## Research
 
 Pragmatic's guarantees are real because they are proved. The theory is
-**Agentical** — a probabilistic process calculus with six primitives (Agent,
+**Agentical** - a probabilistic process calculus with six primitives (Agent,
 Oracle, Channel, Memory, Journal, Supervisor), probabilistic small-step
 semantics in record and replay modes, and three theorems stated with honest
 scope. [Read the research](https://aniketh.net/pragmatic/research/).
@@ -193,14 +193,14 @@ scope. [Read the research](https://aniketh.net/pragmatic/research/).
 ## License & commercial use
 
 Pragmatic is **source-available** under the
-[Business Source License 1.1](LICENSE) — read it, modify it, self-host it.
+[Business Source License 1.1](LICENSE) - read it, modify it, self-host it.
 
 - **Free** for non-production use, and for **production use by organizations
   under US $1M annual revenue** (and not as a competing hosted service). See
   the [Additional Use Grant](LICENSE) for exact terms.
-- **Production use beyond that requires a commercial license** —
+- **Production use beyond that requires a commercial license** -
   [contact us](mailto:me@aniketh.net?subject=Pragmatic%20commercial%20license).
 - Each released version automatically converts to **Apache 2.0** four years
   after release (its Change Date), so nothing is ever locked up forever.
 
-© 2026 Pragmatic, Inc.
+© 2026 Pragmatic Research, Inc.

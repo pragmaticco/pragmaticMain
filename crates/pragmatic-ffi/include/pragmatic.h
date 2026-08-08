@@ -1,8 +1,8 @@
-/* pragmatic.h — C ABI for the Pragmatic durable-execution runtime.
+/* pragmatic.h - C ABI for the Pragmatic durable-execution runtime.
  *
  * Pragmatic journals every step an agent takes (model calls, effects,
  * receives, clock reads) to an append-only hash-chained log, so a run
- * survives any crash and replays exactly — nondeterministic model behavior
+ * survives any crash and replays exactly - nondeterministic model behavior
  * included.
  *
  * String ownership, two rules:
@@ -17,7 +17,7 @@
  * boundary): report failure by returning NULL with *err_out set via
  * prag_str_new().
  *
- * Thread-safety: a PragRuntime and its reports are single-threaded — drive
+ * Thread-safety: a PragRuntime and its reports are single-threaded - drive
  * each runtime from one thread at a time.
  */
 
@@ -74,7 +74,7 @@ typedef struct PragReport PragReport;   /* the result of one attempt       */
 /* Strings                                                             */
 /* ------------------------------------------------------------------ */
 
-/* Copy a NUL-terminated string into a library-owned allocation — the only
+/* Copy a NUL-terminated string into a library-owned allocation - the only
  * valid way to produce a char* returned from a callback. */
 char *prag_str_new(const char *s);
 
@@ -112,7 +112,7 @@ PragRuntime *prag_runtime_open(const char *dir, prag_oracle_fn oracle,
 
 void prag_runtime_close(PragRuntime *rt);
 
-/* Start (or continue) a durable run — re-enterable, retries are idempotent.
+/* Start (or continue) a durable run - re-enterable, retries are idempotent.
  * On PRAG_OK, *report_out (optional: pass NULL to skip) must be freed with
  * prag_report_free(). */
 int prag_runtime_run(PragRuntime *rt, const char *run_id, prag_agent_fn agent,
@@ -140,10 +140,10 @@ int prag_runtime_verify(PragRuntime *rt, const char *run_id,
                         uint64_t *bad_cursor_out, char **err_out);
 
 /* ------------------------------------------------------------------ */
-/* Ctx — inside an agent callback only                                 */
+/* Ctx - inside an agent callback only                                 */
 /* ------------------------------------------------------------------ */
 
-/* One model call, journaled once. Record: sample; replay: read back — the
+/* One model call, journaled once. Record: sample; replay: read back - the
  * model is not called. Caller-owned string, or NULL on fault. */
 char *prag_ctx_oracle(PragCtx *ctx, const char *prompt, char **err_out);
 
@@ -179,7 +179,7 @@ uint64_t prag_report_journal_len(const PragReport *r);
 uint64_t prag_report_replayed_steps(const PragReport *r);
 uint64_t prag_report_fresh_steps(const PragReport *r);
 
-/* The observable trace — identical between a recorded run and its replay. */
+/* The observable trace - identical between a recorded run and its replay. */
 uint64_t prag_report_trace_len(const PragReport *r);
 int prag_report_trace_kind(const PragReport *r, uint64_t i);
 uint64_t prag_report_trace_cursor(const PragReport *r, uint64_t i);

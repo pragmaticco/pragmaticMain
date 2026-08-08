@@ -12,8 +12,8 @@ agent actually did.
 
 ## The wedge (decided 2026-08)
 
-We lead with **auditability** — tamper-evident, bit-for-bit replay of agent
-runs — with **zero-token crash recovery** as the supporting economic
+We lead with **auditability** - tamper-evident, bit-for-bit replay of agent
+runs - with **zero-token crash recovery** as the supporting economic
 benefit. Rationale:
 
 - Crash recovery alone is contestable: generic durable-execution engines
@@ -26,7 +26,7 @@ benefit. Rationale:
   high-stakes settings have this problem, budget for it, and no incumbent
   to displace.
 - The formal results (T1 mechanized in Lean) are the *credibility backing*
-  for the audit claim — not the headline. Buyers don't purchase theorems;
+  for the audit claim - not the headline. Buyers don't purchase theorems;
   they purchase "we can answer the auditor."
 
 The README leads with these two pains, in that order. Marketing, docs, and
@@ -64,7 +64,7 @@ demos should do the same.
 - **No new language bindings.** C++ / Java / Go / Node bindings are
   **stable, maintenance-only** as of v0.4: they track the C ABI, get bug
   fixes and CI, and do not grow new surface ahead of the core. They exist
-  to prove the ABI and serve embedding use cases — not to chase every
+  to prove the ABI and serve embedding use cases - not to chase every
   runtime. (Revisit only on concrete customer demand.)
 - **No agent framework.** Pragmatic is the runtime under whatever framework
   the user already has. We do not ship planners, memory stores, or prompt
@@ -104,5 +104,5 @@ no. Adapters may carry the minimum to speak HTTPS + JSON.
 ## Signals to revisit
 
 - Incumbents ship first-class LLM-call modeling with audit-grade history.
-- Design partners consistently ask for recovery/cost and shrug at audit —
+- Design partners consistently ask for recovery/cost and shrug at audit -
   then the wedge order flips.

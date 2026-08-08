@@ -1,5 +1,5 @@
 // Smoke test for the Node binding: record → resume → replay parity, durable
-// effects, typed faults, channels, and hash-chain verification — the same
+// effects, typed faults, channels, and hash-chain verification - the same
 // scenario the Rust, Python, C ABI, C++, Java, and Go tests run.
 
 'use strict';
@@ -44,7 +44,7 @@ assert.equal(report.freshSteps, 4);
 assert.equal(report.replayedSteps, 0);
 assert.equal(report.chainHead.length, 64);
 
-// Resume: everything comes from the journal — no model calls, no
+// Resume: everything comes from the journal - no model calls, no
 // re-performed effect.
 const resumed = rt.resume('node-research-1', agent);
 assert.equal(oracleCalls, 4, 'resume re-sampled');

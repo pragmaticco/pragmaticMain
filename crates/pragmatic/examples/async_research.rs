@@ -1,5 +1,5 @@
 //! The research agent, async: same three guarantees, `await`ed. Runs on the
-//! built-in executor (`pragmatic::block_on`) — swap in tokio et al. freely;
+//! built-in executor (`pragmatic::block_on`) - swap in tokio et al. freely;
 //! the runtime's futures are executor-agnostic.
 //!
 //! ```sh
@@ -48,7 +48,7 @@ fn main() {
         resumed.replayed_steps, resumed.fresh_steps
     );
 
-    // Replay bit-for-bit — the model is never consulted (T1).
+    // Replay bit-for-bit - the model is never consulted (T1).
     let audit = block_on(rt.replay("research-42", research)).expect("replay");
     assert_eq!(audit.trace, resumed.trace);
     println!("replayed  : trace identical, zero model calls");

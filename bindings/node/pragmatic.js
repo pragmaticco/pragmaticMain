@@ -1,4 +1,4 @@
-// pragmatic.js — Node.js binding for the Pragmatic durable-execution runtime.
+// pragmatic.js - Node.js binding for the Pragmatic durable-execution runtime.
 //
 // Binds the C ABI (crates/pragmatic-ffi) through koffi (Node has no built-in
 // FFI). Build the library first: cargo build -p pragmatic-ffi. Point the
@@ -79,7 +79,7 @@ const strFreeRaw = lib.func('void prag_str_free(void* s)');
 const HeapStr = koffi.disposable('PragHeapStr', 'str', strFreeRaw);
 
 // Callback prototypes. Returns stay raw pointers (from prag_str_new); the
-// err_out slot is unused from JS — failures are carried via `pending` below
+// err_out slot is unused from JS - failures are carried via `pending` below
 // and the runtime's typed pending-fault path.
 const OracleProto = koffi.proto('void* PragOracleFn(void* user, const char* prompt, void* err_out)');
 const AgentProto = koffi.proto('void* PragAgentFn(void* user, void* ctx, void* err_out)');
@@ -166,7 +166,7 @@ class Ctx {
   }
 
   /**
-   * One model call, journaled once. Record: sample; replay: read back — the
+   * One model call, journaled once. Record: sample; replay: read back - the
    * model is not called.
    */
   oracle(prompt) {
@@ -317,7 +317,7 @@ class Runtime {
   }
 
   /**
-   * Start (or continue) a durable run — re-enterable, retries are
+   * Start (or continue) a durable run - re-enterable, retries are
    * idempotent.
    */
   run(runId, agent) {

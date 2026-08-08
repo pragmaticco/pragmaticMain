@@ -1,11 +1,11 @@
-//! `Ctx` — the durable execution context handed to your agent.
+//! `Ctx` - the durable execution context handed to your agent.
 //!
 //! One code path, two semantics. Your agent calls `ctx.oracle(...)`,
 //! `ctx.effect(...)`, `ctx.recv(...)`, `ctx.now()`; the context decides,
 //! per step, whether the outcome is *replayed* from the journal ([O-rep],
 //! [Eff-rep], [Rcv-rep]) or *recorded* fresh ([O-rec], [Eff-intent/commit],
 //! [Rcv-rec]). A resumed run replays its surviving prefix and falls through
-//! to recording at the tail ([O-resume]) — the agent cannot tell the
+//! to recording at the tail ([O-resume]) - the agent cannot tell the
 //! difference, which is exactly Theorem T1's content.
 
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -146,7 +146,7 @@ impl<'a> Ctx<'a> {
         Ok(())
     }
 
-    /// `let x ⇐ oracle(e)` — one model call, journaled once.
+    /// `let x ⇐ oracle(e)` - one model call, journaled once.
     ///
     /// Record: sample from the oracle, append `OracleDraw` ([O-rec]).
     /// Replay: read the recorded outcome back; the model is not called
@@ -166,7 +166,7 @@ impl<'a> Ctx<'a> {
 
     /// The replay half of an oracle draw: charge the budget, then either
     /// serve the recorded outcome ([O-rep]) or signal that a fresh sample is
-    /// required (`None` — [O-resume] fall-through). Shared by the sync and
+    /// required (`None` - [O-resume] fall-through). Shared by the sync and
     /// async surfaces.
     pub(crate) fn oracle_replay(&mut self, prompt: &Value) -> Result<Option<Value>, Fault> {
         self.charge_budget()?;
@@ -223,7 +223,7 @@ impl<'a> Ctx<'a> {
     /// function; call it by hand if you don't use the macro.
     ///
     /// On record, appends `Program { name, hash }`. On replay, verifies the
-    /// journaled identity — a changed program fails as [`Fault::JournalDesync`]
+    /// journaled identity - a changed program fails as [`Fault::JournalDesync`]
     /// *before* any step can misreplay, turning assumption A2 ("the same term
     /// is replayed") into an enforced property.
     pub fn program_marker(&mut self, name: &str, hash: &str) -> Result<(), Fault> {
@@ -234,7 +234,7 @@ impl<'a> Ctx<'a> {
                     cursor,
                     expected: format!("Program({name}, {hash})"),
                     found: format!(
-                        "Program({n}, {h}) — the source of `{name}` changed since this \
+                        "Program({n}, {h}) - the source of `{name}` changed since this \
                          journal was recorded"
                     ),
                 }),
@@ -257,7 +257,7 @@ impl<'a> Ctx<'a> {
         Ok(())
     }
 
-    /// `do[f] e` — a durable effect under the three-phase write-ahead
+    /// `do[f] e` - a durable effect under the three-phase write-ahead
     /// discipline (paper §4.5):
     ///
     /// 1. [Eff-intent]  journal `EffectIntent` *before* touching the world;
@@ -267,7 +267,7 @@ impl<'a> Ctx<'a> {
     /// Replay reuses the committed result and does **not** re-perform
     /// ([Eff-rep]). A crash between 1 and 3 leaves a dangling intent that
     /// [`Runtime::resume_with`](crate::runtime::Runtime::resume_with)
-    /// resolves before re-entering — the no-orphaned-effect property.
+    /// resolves before re-entering - the no-orphaned-effect property.
     pub fn effect(
         &mut self,
         name: &str,
@@ -280,14 +280,14 @@ impl<'a> Ctx<'a> {
         }
         self.effect_begin(name, arg.clone())?;
         // [Eff-perform]: the world acts. A failure here (or a crash) leaves
-        // the dangling intent for recovery — the effect is never orphaned.
+        // the dangling intent for recovery - the effect is never orphaned.
         let result = perform(&arg)?;
         self.effect_commit(name, result)
     }
 
     /// The replay half of a durable effect: capability check, then walk the
     /// journal. Returns `Some(result)` when a committed effect replays
-    /// ([Eff-rep]); `None` when the effect must be performed fresh — either
+    /// ([Eff-rep]); `None` when the effect must be performed fresh - either
     /// the journal is exhausted here, or every recorded intent for this step
     /// was closed by a compensation (undone after a crash) and the loop
     /// consumed those pairs.
@@ -305,7 +305,7 @@ impl<'a> Ctx<'a> {
         // A single logical effect may occupy several journaled pairs:
         // Intent+Compensated (crashed, undone) repeated, then finally
         // Intent+Commit. Loop until a commit replays or the journal runs out
-        // — falling through after a Compensated pair without continuing the
+        // - falling through after a Compensated pair without continuing the
         // loop would desync every later step.
         loop {
             match self.replay_next() {
@@ -342,7 +342,7 @@ impl<'a> Ctx<'a> {
                             return Err(Fault::JournalDesync {
                                 cursor,
                                 expected: format!(
-                                    "EffectCommit({name}) or EffectCompensated({name}) — \
+                                    "EffectCommit({name}) or EffectCompensated({name}) - \
                                      resume_with a recovery policy to close the dangling intent"
                                 ),
                                 found: "end of journal".to_string(),
@@ -367,7 +367,7 @@ impl<'a> Ctx<'a> {
         }
     }
 
-    /// [Eff-intent]: journal the write-ahead intent — durable BEFORE the
+    /// [Eff-intent]: journal the write-ahead intent - durable BEFORE the
     /// world can change. Only called after
     /// [`effect_replay`](Self::effect_replay) returned `None`.
     pub(crate) fn effect_begin(&mut self, name: &str, arg: Value) -> Result<(), Fault> {
@@ -395,7 +395,7 @@ impl<'a> Ctx<'a> {
         Ok(result)
     }
 
-    /// `x ← c?` — receive on a channel. Receives are journaled because the
+    /// `x ← c?` - receive on a channel. Receives are journaled because the
     /// value arrives from outside this replay scope (invariant I4); replay
     /// reads it back ([Rcv-rep]).
     pub fn recv(&mut self, channel: &str) -> Result<Value, Fault> {

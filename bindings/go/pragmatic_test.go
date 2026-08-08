@@ -1,5 +1,5 @@
 // Smoke test for the Go binding: record → resume → replay parity, durable
-// effects, typed faults, channels, and hash-chain verification — the same
+// effects, typed faults, channels, and hash-chain verification - the same
 // scenario the Rust, Python, C ABI, C++, and Java tests run.
 
 package pragmatic
@@ -70,7 +70,7 @@ func TestRecordResumeReplay(t *testing.T) {
 		t.Fatalf("chain head: %q", report.ChainHead)
 	}
 
-	// Resume: everything comes from the journal — no model calls, no
+	// Resume: everything comes from the journal - no model calls, no
 	// re-performed effect.
 	resumed, err := rt.Resume("go-research-1", agent)
 	if err != nil {

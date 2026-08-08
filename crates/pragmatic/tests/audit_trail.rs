@@ -128,7 +128,7 @@ fn effect_capabilities_are_enforced() {
         )
         .unwrap_err();
     assert!(matches!(err, Fault::CapabilityDenied(name) if name == "delete_prod_db"));
-    // Nothing was journaled for the denied effect — it never got an intent.
+    // Nothing was journaled for the denied effect - it never got an intent.
     assert_eq!(rt.journal("capped").unwrap().len(), 0);
 }
 

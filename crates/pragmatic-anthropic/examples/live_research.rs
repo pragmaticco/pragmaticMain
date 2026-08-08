@@ -6,7 +6,7 @@
 //! ```
 //!
 //! Run it, kill it mid-run (^C), run it again: the journal picks up exactly
-//! where it stopped — the completions already paid for are read back, not
+//! where it stopped - the completions already paid for are read back, not
 //! re-sampled.
 
 use pragmatic::{Ctx, Fault, Runtime, Value};
@@ -36,7 +36,7 @@ fn brief(ctx: &mut Ctx) -> Result<Value, Fault> {
 
 fn main() {
     let Ok(oracle) = AnthropicOracle::from_env() else {
-        eprintln!("ANTHROPIC_API_KEY not set — skipping live example.");
+        eprintln!("ANTHROPIC_API_KEY not set - skipping live example.");
         return;
     };
     let oracle = oracle.model("claude-sonnet-5").max_tokens(400);

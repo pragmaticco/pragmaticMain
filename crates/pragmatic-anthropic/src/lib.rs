@@ -1,4 +1,4 @@
-//! Claude as a journaled **Oracle** — the Anthropic Messages API adapter for
+//! Claude as a journaled **Oracle** - the Anthropic Messages API adapter for
 //! the Pragmatic durable-execution runtime.
 //!
 //! ```no_run
@@ -27,8 +27,8 @@
 //! Real agents are multi-turn tool loops, and the whole loop journals. A
 //! plain-text prompt behaves as above; a [`Conversation`] prompt sends the
 //! full message history with the oracle's declared tools, and the journaled
-//! outcome is a [`Turn`] carrying the assistant's content blocks —
-//! `tool_use` included — plus the stop reason and token usage. Tools
+//! outcome is a [`Turn`] carrying the assistant's content blocks -
+//! `tool_use` included - plus the stop reason and token usage. Tools
 //! execute as `ctx.effect(...)`, under the same write-ahead journaling as
 //! any other side effect:
 //!
@@ -62,7 +62,7 @@
 //! ```
 //!
 //! On resume after a crash, every prior model turn *and* every prior tool
-//! result replays from the journal — the loop re-executes, the world does
+//! result replays from the journal - the loop re-executes, the world does
 //! not.
 
 use pragmatic::{Fault, Oracle, Value};
@@ -149,8 +149,8 @@ impl AnthropicOracle {
     /// The request body for `prompt` (exposed for tests and debugging).
     ///
     /// A plain-text prompt becomes a single user message. A structured
-    /// prompt — a JSON object with a `"messages"` array, as produced by
-    /// [`Conversation::prompt`] — is sent as the full conversation, with
+    /// prompt - a JSON object with a `"messages"` array, as produced by
+    /// [`Conversation::prompt`] - is sent as the full conversation, with
     /// the oracle's declared tools attached.
     pub fn build_request(&self, prompt: &Value) -> Json {
         let messages = match Self::parse_structured(prompt) {
@@ -233,8 +233,8 @@ impl Oracle for AnthropicOracle {
             .parse::<Json>()
             .map_err(|e| Fault::OracleErr(format!("response is not valid JSON: {e}")))?;
 
-        // Structured prompts journal the whole assistant turn — content
-        // blocks (tool_use intact), stop reason, and token usage — so the
+        // Structured prompts journal the whole assistant turn - content
+        // blocks (tool_use intact), stop reason, and token usage - so the
         // journal is a complete audit record of the conversation. Plain
         // prompts keep the text-in/text-out contract.
         if Self::parse_structured(prompt).is_some() {
@@ -254,8 +254,8 @@ impl Oracle for AnthropicOracle {
 
 /// The message history of a tool-use loop, sent whole on every draw.
 ///
-/// The conversation is rebuilt from journaled values on every attempt —
-/// prior [`Turn`]s and tool results all replay from the journal — so the
+/// The conversation is rebuilt from journaled values on every attempt -
+/// prior [`Turn`]s and tool results all replay from the journal - so the
 /// serialized prompt is byte-identical across record, resume, and replay.
 #[derive(Clone, Debug, Default)]
 pub struct Conversation {
@@ -275,7 +275,7 @@ impl Conversation {
             .push(json!({ "role": "user", "content": text.into() }));
     }
 
-    /// Append the assistant's turn exactly as journaled — `tool_use` blocks
+    /// Append the assistant's turn exactly as journaled - `tool_use` blocks
     /// and all, as the Messages API requires for the follow-up request.
     pub fn push_assistant(&mut self, turn: &Turn) {
         self.messages
@@ -306,7 +306,7 @@ impl Conversation {
 
     /// The structured prompt for `ctx.oracle(...)`. Serialization is
     /// deterministic (sorted keys), so identical histories yield identical
-    /// prompt bytes — the property journal verification depends on.
+    /// prompt bytes - the property journal verification depends on.
     pub fn prompt(&self) -> Value {
         Value::from(json!({ "messages": self.messages }).to_string())
     }
@@ -346,7 +346,7 @@ impl Turn {
         })
     }
 
-    /// Parse a journaled oracle outcome back into a turn — used identically
+    /// Parse a journaled oracle outcome back into a turn - used identically
     /// while recording and while replaying.
     pub fn parse(outcome: &Value) -> Result<Turn, Fault> {
         let json: Json = serde_json::from_slice(outcome.as_bytes())

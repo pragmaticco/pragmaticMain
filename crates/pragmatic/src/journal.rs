@@ -1,14 +1,14 @@
-//! The **Journal** — Pragmatic's append-only, hash-chained event history.
+//! The **Journal** - Pragmatic's append-only, hash-chained event history.
 //!
 //! The Journal is the source of truth for what an agent actually did. Every
 //! externally-determined outcome (oracle draws, channel receives, durable
-//! effects, clock reads — paper Definition 4.2) is appended as the run
+//! effects, clock reads - paper Definition 4.2) is appended as the run
 //! proceeds. Replay reads outcomes back instead of re-sampling the model,
 //! which is what makes crash recovery exact (Theorem T1).
 //!
 //! Properties this module provides:
 //!
-//! - **Cursor keys.** Each entry's key is its position in the log — a simple
+//! - **Cursor keys.** Each entry's key is its position in the log - a simple
 //!   monotone count, data-independent, so record and replay land on the same
 //!   entry (paper Lemma 5.1). No hashes or program counters in the key.
 //! - **O(1) append.** Appending is a `Vec` push plus (for durable journals) a
@@ -19,7 +19,7 @@
 //!   chain; any mutation of a committed entry breaks every later link.
 //! - **Torn-tail recovery.** The durable backend is a length-prefixed
 //!   append-only file. On open, a partial final record (a crash mid-write) is
-//!   detected and truncated — exactly the checkpoint-truncation semantics of
+//!   detected and truncated - exactly the checkpoint-truncation semantics of
 //!   paper Definition 3.12.
 
 use std::fs::{File, OpenOptions};
@@ -54,14 +54,14 @@ pub enum Event {
         provenance: String,
     },
     /// A value received on a channel (the other source of externally
-    /// determined data — adversarial scheduling realized as a message).
+    /// determined data - adversarial scheduling realized as a message).
     ChannelRecv { channel: String, value: Value },
     /// Write-ahead intent for a durable effect: journaled *before* the effect
     /// runs ([Eff-intent]).
     EffectIntent { name: String, arg: Value },
     /// The effect's committed result, journaled *after* it succeeds
     /// ([Eff-commit]). An `EffectIntent` without a matching `EffectCommit` is
-    /// a dangling intent — a crash inside the write-ahead window.
+    /// a dangling intent - a crash inside the write-ahead window.
     EffectCommit { name: String, result: Value },
     /// A saga compensation closed this effect's open intent. Tagged
     /// distinctly so replay never double-undoes ([Sup-comp]).
@@ -72,7 +72,7 @@ pub enum Event {
     /// Identity of the agent program driving this run: name plus a hash of
     /// its source tokens (emitted by `#[pragmatic::durable]`). Replay checks
     /// it first, turning assumption A2 ("the same term is replayed") into an
-    /// enforced property — changed code fails loudly as a `JournalDesync`
+    /// enforced property - changed code fails loudly as a `JournalDesync`
     /// instead of misreplaying.
     Program { name: String, hash: String },
 }
@@ -202,7 +202,7 @@ impl Event {
 pub struct Entry {
     pub cursor: Cursor,
     pub event: Event,
-    /// `H(prev_hash ‖ cursor ‖ payload)` — the link in the tamper-evident chain.
+    /// `H(prev_hash ‖ cursor ‖ payload)` - the link in the tamper-evident chain.
     pub hash: Digest,
 }
 
@@ -323,7 +323,7 @@ impl Journal {
             let len = u32::from_le_bytes(bytes[pos..pos + 4].try_into().unwrap()) as usize;
             let frame_end = pos + 4 + len + DIGEST_LEN;
             if frame_end > bytes.len() {
-                break; // torn payload/hash — crash mid-write
+                break; // torn payload/hash - crash mid-write
             }
             let payload = &bytes[pos + 4..pos + 4 + len];
             let mut hash = [0u8; DIGEST_LEN];
@@ -452,7 +452,7 @@ impl Journal {
     }
 
     /// Effect names whose `EffectIntent` has no matching `EffectCommit` or
-    /// `EffectCompensated` — crashes inside the write-ahead window. Feeds the
+    /// `EffectCompensated` - crashes inside the write-ahead window. Feeds the
     /// no-orphaned-effect recovery rule ([Eff-recover]).
     pub fn dangling_intents(&self) -> Vec<(Cursor, String)> {
         let mut open: Vec<(Cursor, String)> = Vec::new();

@@ -1,7 +1,7 @@
 # Pragmatic language bindings
 
-The same runtime — journal every step, recover from any crash, replay
-faithfully — from C++, Java, Go, and Node.js. Every binding sits on the one
+The same runtime - journal every step, recover from any crash, replay
+faithfully - from C++, Java, Go, and Node.js. Every binding sits on the one
 C ABI exported by [`crates/pragmatic-ffi`](../crates/pragmatic-ffi)
 ([`pragmatic.h`](../crates/pragmatic-ffi/include/pragmatic.h)), so journals
 are byte-compatible across every language here, plus Rust and Python, and
@@ -9,7 +9,7 @@ the CLI/console read them all.
 
 **Status: stable, maintenance-only.** These bindings track the C ABI and
 receive bug fixes and CI coverage, but new runtime surface lands in Rust,
-Python, and (next) a first-class TypeScript SDK before it lands here — see
+Python, and (next) a first-class TypeScript SDK before it lands here - see
 [docs/STRATEGY.md](../docs/STRATEGY.md). If a missing capability blocks a
 real embedding use case, [open an issue](../CONTRIBUTING.md).
 
@@ -29,13 +29,13 @@ cargo build -p pragmatic-ffi
 
 Each binding exposes the same surface:
 
-- **`Runtime(dir, oracle, key?)`** — journals persist under `dir` (one
+- **`Runtime(dir, oracle, key?)`** - journals persist under `dir` (one
   append-only, hash-chained file per run); `oracle` is your model call,
   prompt in → completion out; `key` HMAC-signs the journals.
-- **`run` / `resume` / `replay`** under a stable run id — record, crash-recover
+- **`run` / `resume` / `replay`** under a stable run id - record, crash-recover
   without re-sampling, and audit bit-for-bit with the model never consulted.
 - **`ctx.oracle` / `ctx.effect` / `ctx.recv` / `ctx.now` / `ctx.contract` /
-  `ctx.is_replaying`** inside the agent — every step journaled, effects under
+  `ctx.is_replaying`** inside the agent - every step journaled, effects under
   the write-ahead discipline.
 - **`send` / `verify`** on the runtime, and a **run report** (output, trace,
   replayed/fresh step counts, chain head).

@@ -1,5 +1,5 @@
 // Smoke test for the Java binding: record → resume → replay parity, durable
-// effects, typed faults, channels, and hash-chain verification — the same
+// effects, typed faults, channels, and hash-chain verification - the same
 // scenario the Rust, Python, C ABI, and C++ tests run.
 
 import java.nio.file.Files;
@@ -55,7 +55,7 @@ public final class Smoke {
                 recordedTrace = report.trace();
             }
 
-            // Resume: everything comes from the journal — no model calls, no
+            // Resume: everything comes from the journal - no model calls, no
             // re-performed effect.
             try (var resumed = rt.resume("java-research-1", agent)) {
                 check(oracleCalls.get() == 4, "resume re-sampled");

@@ -1,4 +1,4 @@
-//! `pragmatic serve` — the replay console as a local web app, zero
+//! `pragmatic serve` - the replay console as a local web app, zero
 //! dependencies. Binds loopback only; every request re-reads the journal
 //! directory, so the console live-follows runs as they record.
 //!
@@ -77,7 +77,7 @@ fn index_page(dir: &Path, key: Option<&str>) -> String {
                 let head = j
                     .head()
                     .map(|h| hex(&h)[..12].to_string())
-                    .unwrap_or_else(|| "—".into());
+                    .unwrap_or_else(|| "-".into());
                 rows.push_str(&format!(
                     "<tr class=\"run\">\
                        <td class=\"name\"><a href=\"/run/{run}\">{run}</a></td>\
@@ -101,7 +101,7 @@ fn index_page(dir: &Path, key: Option<&str>) -> String {
         }
     }
     let table = if rows.is_empty() {
-        "<div class=\"empty\">no journals in this directory — point an agent's \
+        "<div class=\"empty\">no journals in this directory - point an agent's \
          runtime here and runs appear as they record</div>"
             .to_string()
     } else {
@@ -130,7 +130,7 @@ fn index_page(dir: &Path, key: Option<&str>) -> String {
   <div>dir <b>{dir}</b></div>
 </div>
 {table}"#,
-        mast = export::masthead("runs", "live — refresh to follow"),
+        mast = export::masthead("runs", "live - refresh to follow"),
         dir = export::esc(&dir.display().to_string()),
     );
     export::page("pragmatic console", &body)

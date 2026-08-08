@@ -1,4 +1,4 @@
-//! **E1 — Replay determinism (T1, empirically).**
+//! **E1 - Replay determinism (T1, empirically).**
 //!
 //! For 1000 independently seeded stochastic runs: record the run, then
 //! replay it strictly (model never called) and assert the observable trace
@@ -45,7 +45,7 @@ fn e1_replay_determinism_1000_of_1000() {
 
         let replayed = rt.replay(&run_id, agent).expect("replay succeeds");
 
-        // Zero model calls during replay — the oracle was never consulted.
+        // Zero model calls during replay - the oracle was never consulted.
         assert_eq!(
             rt.oracle().calls(),
             calls_after_record,

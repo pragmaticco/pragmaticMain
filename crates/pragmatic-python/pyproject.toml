@@ -4,11 +4,11 @@ build-backend = "maturin"
 
 [project]
 name = "pragmatic-runtime"
-description = "Durable execution for agents that don't run deterministically. Journals every step an agent takes, so it survives any crash and replays exactly — nondeterministic model behavior included."
+description = "Durable execution for agents that don't run deterministically. Journals every step an agent takes, so it survives any crash and replays exactly - nondeterministic model behavior included."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "BUSL-1.1" }
-authors = [{ name = "Pragmatic", email = "me@aniketh.net" }]
+authors = [{ name = "Pragmatic Research, Inc.", email = "me@aniketh.net" }]
 keywords = ["agents", "llm", "durable-execution", "replay", "crash-recovery"]
 classifiers = [
     "Development Status :: 4 - Beta",

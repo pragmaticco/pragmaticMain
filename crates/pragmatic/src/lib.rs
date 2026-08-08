@@ -1,7 +1,7 @@
-//! # Pragmatic — durable execution for agents that don't run deterministically
+//! # Pragmatic - durable execution for agents that don't run deterministically
 //!
 //! A zero-dependency Rust runtime that journals every step an agent takes, so
-//! it survives any crash and replays exactly — nondeterministic model
+//! it survives any crash and replays exactly - nondeterministic model
 //! behavior included.
 //!
 //! Every durable-execution engine assumes deterministic replay and hacks
@@ -15,12 +15,12 @@
 //!
 //! ## Three guarantees, every run
 //!
-//! 1. **Journal every step** — each oracle call's realized outcome lands in
+//! 1. **Journal every step** - each oracle call's realized outcome lands in
 //!    an append-only log as the run proceeds ([`Journal`]).
-//! 2. **Recover from any crash** — resume exactly where the agent stopped;
+//! 2. **Recover from any crash** - resume exactly where the agent stopped;
 //!    recorded outcomes are read back instead of re-sampled
 //!    ([`Runtime::resume`]).
-//! 3. **Replay faithfully** — reproduce the entire run exactly for debugging
+//! 3. **Replay faithfully** - reproduce the entire run exactly for debugging
 //!    and audit, nondeterministic LLM behavior included
 //!    ([`Runtime::replay`], T1).
 //!
@@ -72,7 +72,7 @@ pub use runtime::{Recover, RunReport, Runtime};
 pub use supervisor::{Decision, Supervisor};
 pub use value::Value;
 
-/// `#[pragmatic::durable]` — journal the program's identity so a run
+/// `#[pragmatic::durable]` - journal the program's identity so a run
 /// recorded under one version of your agent refuses to replay under another.
 /// See [`Ctx::program_marker`] for the underlying mechanism.
 #[cfg(feature = "macros")]

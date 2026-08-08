@@ -1,5 +1,5 @@
 //! `#[pragmatic::durable]`: the program's identity is journaled at step
-//! zero and verified on every replay — changed code fails loudly instead of
+//! zero and verified on every replay - changed code fails loudly instead of
 //! misreplaying (assumption A2, enforced).
 
 #![cfg(feature = "macros")]
@@ -13,7 +13,7 @@ fn research(ctx: &mut Ctx) -> Result<Value, Fault> {
     Ok(Value::from(format!("done: {step}")))
 }
 
-// Same name, different body — a "deployed new version" of the agent.
+// Same name, different body - a "deployed new version" of the agent.
 mod v2 {
     use super::*;
 
@@ -64,7 +64,7 @@ fn replay_and_resume_verify_program_identity() {
     assert_eq!(resumed.fresh_steps, 0);
 
     // Crash + resume: the marker and surviving draw replay from the journal;
-    // only the lost tail is re-sampled (fresh outcome — the model is
+    // only the lost tail is re-sampled (fresh outcome - the model is
     // nondeterministic, and that is fine: it is journaled going forward).
     rt.journal("r").unwrap().truncate(2).unwrap();
     let resumed = rt.resume("r", research).unwrap();

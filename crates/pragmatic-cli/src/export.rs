@@ -14,7 +14,7 @@ pub fn esc(s: &str) -> String {
         .replace('"', "&quot;")
 }
 
-/// Minimal base64 (standard alphabet, padded) — keeps the CLI zero-dep.
+/// Minimal base64 (standard alphabet, padded) - keeps the CLI zero-dep.
 fn b64(data: &[u8]) -> String {
     const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
@@ -195,7 +195,7 @@ fn row(event: &Event) -> Row {
             quiet: true,
             summary: format!("<b>{}</b> source={}", esc(name), esc(hash)),
             detail: format!(
-                "<div class=\"kv\">program identity — replay fails at this cursor with \
+                "<div class=\"kv\">program identity - replay fails at this cursor with \
                  <b>JournalDesync</b> if the source hash of <b>{}</b> no longer matches</div>",
                 esc(name)
             ),
@@ -235,7 +235,7 @@ fn row(event: &Event) -> Row {
             quiet: true,
             summary: format!("<b>{}</b>({})", esc(name), esc(&clip(&arg.as_str(), 64))),
             detail: format!(
-                "{}<div class=\"kv\">write-ahead intent — journaled durable <b>before</b> \
+                "{}<div class=\"kv\">write-ahead intent - journaled durable <b>before</b> \
                  the effect runs; an intent without a matching commit marks a crash inside \
                  the effect window</div>",
                 detail_block("argument", &arg.as_str())
@@ -259,7 +259,7 @@ fn row(event: &Event) -> Row {
             evt: "effect.comp",
             quiet: false,
             summary: format!("<b>{}</b> rolled back", esc(name)),
-            detail: "<div class=\"kv\">saga compensation — closes the open intent; replay \
+            detail: "<div class=\"kv\">saga compensation - closes the open intent; replay \
                      will not double-undo</div>"
                 .to_string(),
         },
@@ -268,7 +268,7 @@ fn row(event: &Event) -> Row {
             quiet: true,
             summary: format!("{nanos} ns"),
             detail: format!(
-                "<div class=\"kv\">journaled clock read — replay sees <b>{nanos}</b>, \
+                "<div class=\"kv\">journaled clock read - replay sees <b>{nanos}</b>, \
                  not the current time</div>"
             ),
         },
@@ -280,7 +280,7 @@ pub fn render(run_id: &str, journal: &Journal) -> String {
     let head = journal
         .head()
         .map(|h| hex(&h))
-        .unwrap_or_else(|| "—".to_string());
+        .unwrap_or_else(|| "-".to_string());
     let dangling = journal.dangling_intents().len();
     let draws = journal
         .entries()
@@ -322,7 +322,7 @@ pub fn render(run_id: &str, journal: &Journal) -> String {
         "<span class=\"alarm\">CHAIN BROKEN</span>".to_string()
     };
     let open = if dangling > 0 {
-        format!("<div><span class=\"alarm\">{dangling} OPEN INTENT(S)</span> — crashed mid-effect; resume with a recovery policy</div>")
+        format!("<div><span class=\"alarm\">{dangling} OPEN INTENT(S)</span> - crashed mid-effect; resume with a recovery policy</div>")
     } else {
         String::new()
     };
@@ -338,7 +338,7 @@ pub fn render(run_id: &str, journal: &Journal) -> String {
   {open}
   <div>head <b title="{head}">{head_short}</b></div>
 </div>
-<div class="cols"><span>cur</span><span>event</span><span>summary — click to expand</span><span style="text-align:right">hash</span></div>
+<div class="cols"><span>cur</span><span>event</span><span>summary - click to expand</span><span style="text-align:right">hash</span></div>
 {entries}"#,
         mast = masthead("runs", &esc(run_id)),
         run = esc(run_id),

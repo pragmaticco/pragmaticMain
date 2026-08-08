@@ -1,4 +1,4 @@
-//! **E3 — Journaling overhead.**
+//! **E3 - Journaling overhead.**
 //!
 //! (a) Journal append is O(1): mean append latency at 1k entries and at 1M
 //!     entries must be within a small constant factor (flat, no growth with
@@ -9,7 +9,7 @@
 //!
 //! Run with `--release` for the headline numbers (~230 ns appends); the
 //! assertions here are deliberately loose so the suite stays green under
-//! debug builds and CI noise — E3 asserts *shape* (flatness, speedup), not
+//! debug builds and CI noise - E3 asserts *shape* (flatness, speedup), not
 //! absolute nanoseconds.
 
 use std::time::{Duration, Instant};

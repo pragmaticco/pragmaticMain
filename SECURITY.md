@@ -30,7 +30,7 @@ within 72 hours and a remediation plan or triage decision within 14 days.
 
 ## Known limitations (not vulnerabilities)
 
-- Journals record prompts and completions **in plaintext** by design — they
+- Journals record prompts and completions **in plaintext** by design - they
   are the audit trail. Protect journal files with filesystem/storage
   controls; encryption at rest is on the roadmap.
 - The HMAC key authenticates the *runtime that wrote the log*; anyone

@@ -11,7 +11,7 @@ All notable changes to this project are documented here. The format follows
   conversations through the same `Oracle` contract. A [`Conversation`]
   prompt sends the full message history with the oracle's declared tools
   (`.tools(...)`); the journaled outcome is a [`Turn`] carrying the
-  assistant's content blocks — `tool_use` intact — plus stop reason and
+  assistant's content blocks - `tool_use` intact - plus stop reason and
   token usage. Tools execute as `ctx.effect(...)` under the write-ahead
   discipline. Wire-tested: the full loop records over real sockets, the
   API is killed, resume and replay serve every model turn and tool result
@@ -29,12 +29,12 @@ All notable changes to this project are documented here. The format follows
   audits asking what the agent did), featuring the real tool-use loop and
   an explicit "Why not Temporal (or Restate, Inngest, DBOS)?" comparison.
 
-## [0.4.0] — 2026-08-06 · polyglot launch
+## [0.4.0] - 2026-08-06 · polyglot launch
 
 ### Added
 - **C ABI** (`pragmatic-ffi`, `include/pragmatic.h`): the full runtime
-  surface — run/resume/replay/send/verify plus ctx oracle/effect/recv/
-  now/contract — as one flat `extern "C"` API with callback-based oracles,
+  surface - run/resume/replay/send/verify plus ctx oracle/effect/recv/
+  now/contract - as one flat `extern "C"` API with callback-based oracles,
   agents, and effects. Typed faults cross the boundary intact (budget stays
   budget, desync stays desync) via a pending-fault channel on the ctx.
   Zero dependencies; exercised by its own Rust-side C-discipline tests.
@@ -53,19 +53,19 @@ All notable changes to this project are documented here. The format follows
     no built-in FFI); faults as `FaultError`; JS exceptions from callbacks
     rethrown intact.
 - **`RetryOracle`** (core): wrap any oracle with bounded retries and
-  doubling backoff on transient `OracleErr` faults — retries happen before
+  doubling backoff on transient `OracleErr` faults - retries happen before
   anything is journaled, so a completion that finally succeeds is recorded
   once and replay never sees the failed attempts. Injectable sleeper for
   tests; provenance names the policy.
 - **`pragmatic-openai`**: any OpenAI-compatible Chat Completions server as
-  a journaled Oracle — OpenAI itself, or Ollama / vLLM / llama.cpp / Groq
+  a journaled Oracle - OpenAI itself, or Ollama / vLLM / llama.cpp / Groq
   via `base_url` (keyless servers supported; no Authorization header sent
   without a key). Wire-tested over real sockets like the Anthropic
   adapter, including record-on-the-wire → kill-the-API → resume/replay
   from the journal; a `--ignored` test hits the live API when
   `OPENAI_API_KEY` is set.
 
-## [0.3.0] — 2026-07-14 · customer-ready beta
+## [0.3.0] - 2026-07-14 · customer-ready beta
 
 ### Added
 - **Async runtime** (`AsyncOracle`, `AsyncCtx`, `AsyncRuntime`, `block_on`):
@@ -81,7 +81,7 @@ All notable changes to this project are documented here. The format follows
   replay timelines). Loopback-only by default; zero dependencies.
 - **Wire-level validation** of `pragmatic-anthropic`: real-socket tests
   against a Messages-API mock (success, 429, 529, malformed JSON,
-  connection refused) plus the headline scenario — record on the wire,
+  connection refused) plus the headline scenario - record on the wire,
   kill the API, resume and replay from the journal. A `--ignored` test
   hits the live API when `ANTHROPIC_API_KEY` is set.
 
@@ -92,7 +92,7 @@ All notable changes to this project are documented here. The format follows
   and the final commit instead of desyncing later steps. Regression test
   included.
 
-## [0.2.0] — 2026-07-13 · public beta
+## [0.2.0] - 2026-07-13 · public beta
 
 The first public release. Workspace of four crates:
 
@@ -103,7 +103,7 @@ The first public release. Workspace of four crates:
     tamper detection via `verify`.
   - `Oracle` trait: the LLM call as a first-class distribution; `SeededOracle`,
     `CountingOracle`, `RefusingOracle` for tests and audits.
-  - `Ctx`: one agent code path for record and replay — journaled oracle
+  - `Ctx`: one agent code path for record and replay - journaled oracle
     draws, channel receives, clock reads; three-phase write-ahead durable
     effects; budget and effect-capability enforcement; `program_marker`.
   - `Runtime`: `run` / `resume` / `resume_with` / `replay` keyed by run id.
@@ -113,15 +113,15 @@ The first public release. Workspace of four crates:
     reverse-order saga compensation, escalation).
   - `Store`: IFC-labeled memory (no read-up / no write-down).
   - `Event::Program`: program identity journaled at step zero and verified
-    on replay — changed agent code fails as `JournalDesync` instead of
+    on replay - changed agent code fails as `JournalDesync` instead of
     misreplaying.
-- **`pragmatic-macros`**: `#[pragmatic::durable]` — hashes the function's
+- **`pragmatic-macros`**: `#[pragmatic::durable]` - hashes the function's
   source tokens and injects the program marker. Zero dependencies.
 - **`pragmatic-anthropic`**: Claude as a journaled Oracle over the Messages
   API (model / system / temperature / max_tokens config, provenance
   metadata, faults mapped to `Fault::OracleErr`).
 - **`pragmatic-cli`** (binary `pragmatic`): `runs`, `show`, `verify`, and
-  `export` — a self-contained HTML replay console per run.
+  `export` - a self-contained HTML replay console per run.
 
 ### Measured
 - E1: 1000/1000 seeded stochastic runs replay byte-identically, zero model

@@ -1,7 +1,7 @@
 //! Case study CS4 (paper §6.1): **tool use with retries and crash recovery.**
 //!
 //! An agent drafts a query, calls a flaky external tool as a durable effect,
-//! and synthesizes an answer — under a Supervisor that restarts transient
+//! and synthesizes an answer - under a Supervisor that restarts transient
 //! faults from the journal. The tool fails twice before succeeding; each
 //! restart replays the journaled prefix (no re-drafting, no duplicate model
 //! calls) and retries only the failed step.
@@ -16,7 +16,7 @@ use std::rc::Rc;
 use pragmatic::{Ctx, Fault, RunOptions, Runtime, SeededOracle, Supervisor, Value};
 
 fn main() {
-    // A tool that fails its first two invocations — a rate-limited search
+    // A tool that fails its first two invocations - a rate-limited search
     // API, say. `Rc<Cell>` stands in for the outside world's state.
     let attempts = Rc::new(Cell::new(0u32));
     let tool_attempts = attempts.clone();

@@ -1,4 +1,4 @@
-//! `Value` — the realized outcome of a journaled step.
+//! `Value` - the realized outcome of a journaled step.
 //!
 //! The calculus treats realized oracle outcomes, channel messages, and effect
 //! results as closed, irreducible *values* (paper §4.1). The runtime carries
@@ -22,7 +22,7 @@ impl Value {
         &self.0
     }
 
-    /// Lossy UTF-8 view — realized model outputs are text in practice.
+    /// Lossy UTF-8 view - realized model outputs are text in practice.
     pub fn as_str(&self) -> std::borrow::Cow<'_, str> {
         String::from_utf8_lossy(&self.0)
     }

@@ -5,13 +5,13 @@
 Python bindings for the [Pragmatic](https://github.com/pragmaticco/pragmaticMain)
 Rust runtime: every model call your agent makes is journaled to an
 append-only, hash-chained log, so the run survives any crash and replays
-exactly — nondeterministic model behavior included.
+exactly - nondeterministic model behavior included.
 
 ```python
 import pragmatic
 
 def oracle(prompt: str) -> str:
-    # your model call — Anthropic SDK, OpenAI, a local server, anything
+    # your model call - Anthropic SDK, OpenAI, a local server, anything
     ...
 
 rt = pragmatic.Runtime("./journals", oracle)
@@ -24,7 +24,7 @@ def research(ctx):
 
 report = rt.run("research-42", research)
 
-# Crash anywhere. Resume exactly — recorded steps are read back from the
+# Crash anywhere. Resume exactly - recorded steps are read back from the
 # journal, not re-sampled (and not re-paid-for):
 report = rt.resume("research-42", research)
 
@@ -49,5 +49,5 @@ maturin develop --release
 ```
 
 The journal files are the same format the Rust runtime and the `pragmatic`
-CLI read — `pragmatic export research-42 --dir ./journals` gives you the
+CLI read - `pragmatic export research-42 --dir ./journals` gives you the
 HTML replay console for runs recorded from Python.

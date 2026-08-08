@@ -1,4 +1,4 @@
-//! **E2 — Durability and crash recovery.**
+//! **E2 - Durability and crash recovery.**
 //!
 //! Crash a run at every possible journal prefix and resume: the resumed run
 //! must (a) never re-sample the journaled prefix, (b) produce a final state
@@ -63,7 +63,7 @@ fn e2_crash_at_every_prefix_resumes_exactly() {
     }
 }
 
-/// The prefix of the resumed trace must equal the recorded prefix — the run
+/// The prefix of the resumed trace must equal the recorded prefix - the run
 /// continues, it does not restart.
 #[test]
 fn e2_resume_preserves_recorded_prefix() {
@@ -97,7 +97,7 @@ fn e2_file_journal_survives_process_restart() {
     let recorded = {
         let mut rt = Runtime::on_dir(&dir, SeededOracle::new(42)).unwrap();
         rt.run("durable-run", agent).unwrap()
-        // rt dropped here — "the process died".
+        // rt dropped here - "the process died".
     };
 
     // New process: same journal dir, fresh oracle state. If resume touched
@@ -148,7 +148,7 @@ fn e2_torn_tail_is_truncated_on_open() {
 /// resume must resolve it per policy before re-entering.
 #[test]
 fn e2_dangling_intent_recovery() {
-    // The effect fails after its intent is journaled — the crash window.
+    // The effect fails after its intent is journaled - the crash window.
     let flaky = |ctx: &mut Ctx| -> Result<Value, Fault> {
         let x = ctx.oracle("draw")?;
         ctx.effect("charge_card", x.as_str().into_owned(), |_| {
@@ -162,7 +162,7 @@ fn e2_dangling_intent_recovery() {
         })
     };
 
-    // Case 1: Compensate — the intent is written off; resume performs fresh.
+    // Case 1: Compensate - the intent is written off; resume performs fresh.
     let mut rt = Runtime::in_memory(SeededOracle::new(11));
     assert!(rt.run("pay-1", flaky).is_err());
     assert_eq!(rt.journal("pay-1").unwrap().dangling_intents().len(), 1);
@@ -177,7 +177,7 @@ fn e2_dangling_intent_recovery() {
     assert!(r.output.as_str().starts_with("charged("));
     assert!(rt.journal("pay-1").unwrap().dangling_intents().is_empty());
 
-    // Case 2: Commit — the operator confirmed the charge landed; close the
+    // Case 2: Commit - the operator confirmed the charge landed; close the
     // intent with the known result. Resume replays it without re-charging.
     let mut rt = Runtime::in_memory(SeededOracle::new(11));
     assert!(rt.run("pay-2", flaky).is_err());
@@ -233,12 +233,12 @@ fn e2_channel_receives_replay() {
     let mut rt = Runtime::in_memory(SeededOracle::new(21));
     rt.send("chan-run", "tasks", "summarize the corpus");
     let recorded = rt.run("chan-run", agent).unwrap();
-    // Replay: inbox is empty now — the value must come from the journal.
+    // Replay: inbox is empty now - the value must come from the journal.
     let replayed = rt.replay("chan-run", agent).unwrap();
     assert_eq!(recorded.trace, replayed.trace);
 }
 
-/// The journal records exactly what happened — spot-check the event shapes.
+/// The journal records exactly what happened - spot-check the event shapes.
 #[test]
 fn e2_journal_event_shapes() {
     let mut rt = Runtime::in_memory(SeededOracle::new(2));

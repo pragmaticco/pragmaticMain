@@ -1,4 +1,4 @@
-//! The **Runtime** — record, resume, replay.
+//! The **Runtime** - record, resume, replay.
 //!
 //! Wrap your agent in a closure over [`Ctx`], hand it to the runtime under a
 //! stable run id, and every oracle call, effect, receive, and clock read is
@@ -16,7 +16,7 @@
 //!
 //! // Crash anywhere; `resume` replays the journaled prefix (no model calls)
 //! // and continues recording at the tail.
-//! // Replay the whole run later, exactly — the model is never consulted.
+//! // Replay the whole run later, exactly - the model is never consulted.
 //! let audit = rt.replay("run-1", |ctx| {
 //!     let plan = ctx.oracle("plan the task")?;
 //!     let step = ctx.oracle(format!("execute: {plan}"))?;
@@ -45,7 +45,7 @@ pub struct RunReport {
     pub run_id: String,
     /// The agent's output.
     pub output: Value,
-    /// The observable trace — identical between a recorded run and its
+    /// The observable trace - identical between a recorded run and its
     /// replay (T1).
     pub trace: Vec<TraceLabel>,
     /// Journal length after this attempt.
@@ -124,7 +124,7 @@ impl<O: Oracle> Runtime<O> {
     }
 
     /// Start (or continue) a durable run. If a journal for `run_id` already
-    /// exists, its prefix is replayed first — `run` is safely re-enterable,
+    /// exists, its prefix is replayed first - `run` is safely re-enterable,
     /// which is what makes retries idempotent.
     pub fn run(
         &mut self,
@@ -164,9 +164,9 @@ impl<O: Oracle> Runtime<O> {
     /// [`resume`](Self::resume) with options and an explicit recovery policy
     /// for dangling effect intents ([Eff-recover]): for each effect that
     /// crashed inside its write-ahead window, decide whether it completed
-    /// (`Recover::Commit(result)` — e.g. after re-running an idempotent
+    /// (`Recover::Commit(result)` - e.g. after re-running an idempotent
     /// effect or checking the world) or must be written off
-    /// (`Recover::Compensate`, the default — the resumed run performs it
+    /// (`Recover::Compensate`, the default - the resumed run performs it
     /// fresh).
     pub fn resume_with(
         &mut self,
@@ -179,7 +179,7 @@ impl<O: Oracle> Runtime<O> {
         self.execute(run_id, &opts, false, agent)
     }
 
-    /// Replay a recorded run, exactly, for debugging and audit — T1. Every
+    /// Replay a recorded run, exactly, for debugging and audit - T1. Every
     /// outcome is read from the journal; the model is **never** called (the
     /// oracle is replaced by one that refuses). Errors with
     /// [`Fault::ReplayExhausted`] if the recorded run never completed.
@@ -210,7 +210,7 @@ impl<O: Oracle> Runtime<O> {
     }
 
     /// Drop the in-memory cache for `run_id` (Dir mode: forces a reload from
-    /// disk on next use — how tests model a process restart).
+    /// disk on next use - how tests model a process restart).
     pub fn evict(&mut self, run_id: &str) {
         self.store.evict(run_id);
     }

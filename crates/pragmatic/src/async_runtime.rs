@@ -1,4 +1,4 @@
-//! The **async runtime** — the same three guarantees for `async` agents.
+//! The **async runtime** - the same three guarantees for `async` agents.
 //!
 //! Executor-agnostic and still zero-dependency: the runtime returns ordinary
 //! futures and never spawns, sleeps, or does async I/O itself (journal
@@ -22,7 +22,7 @@
 //!
 //! Replay safety is mode-ordered, not oracle-swapped: in strict replay the
 //! context errors with [`Fault::ReplayExhausted`] *before* the fresh-sample
-//! path can run, so the model is never consulted — same guarantee as the
+//! path can run, so the model is never consulted - same guarantee as the
 //! sync runtime, enforced in the same place.
 
 use std::future::Future;
@@ -42,7 +42,7 @@ use crate::value::Value;
 /// A model call that is awaited: prompt in, one realized outcome out.
 ///
 /// Every synchronous [`Oracle`] is automatically an `AsyncOracle` (the call
-/// resolves immediately, blocking the polling thread for its duration — fine
+/// resolves immediately, blocking the polling thread for its duration - fine
 /// for tests and CLIs; implement `AsyncOracle` natively over your async HTTP
 /// client for servers).
 pub trait AsyncOracle {
@@ -68,8 +68,8 @@ impl<O: Oracle> AsyncOracle for O {
 
 static REFUSING: RefusingOracle = RefusingOracle;
 
-/// The async durable execution context. Identical semantics to [`Ctx`] —
-/// same journal, same record/replay rules, same trace — with awaited oracle
+/// The async durable execution context. Identical semantics to [`Ctx`] -
+/// same journal, same record/replay rules, same trace - with awaited oracle
 /// calls and effects.
 pub struct AsyncCtx<'a, O> {
     inner: Ctx<'a>,
@@ -77,7 +77,7 @@ pub struct AsyncCtx<'a, O> {
 }
 
 impl<'a, O: AsyncOracle> AsyncCtx<'a, O> {
-    /// `let x ⇐ oracle(e)` — one model call, journaled once
+    /// `let x ⇐ oracle(e)` - one model call, journaled once
     /// ([O-rec]/[O-rep]/[O-resume]).
     pub async fn oracle(&mut self, prompt: impl Into<Value>) -> Result<Value, Fault> {
         let prompt = prompt.into();
@@ -125,7 +125,7 @@ impl<'a, O: AsyncOracle> AsyncCtx<'a, O> {
         self.inner.contract(holds, msg)
     }
 
-    /// Journal (or verify) the program identity — emitted by
+    /// Journal (or verify) the program identity - emitted by
     /// `#[pragmatic::durable]`.
     pub fn program_marker(&mut self, name: &str, hash: &str) -> Result<(), Fault> {
         self.inner.program_marker(name, hash)
@@ -261,7 +261,7 @@ impl<O: AsyncOracle> AsyncRuntime<O> {
         self.execute(run_id, &opts, false, agent).await
     }
 
-    /// Replay a recorded run, exactly, for debugging and audit — T1. The
+    /// Replay a recorded run, exactly, for debugging and audit - T1. The
     /// model is never consulted.
     pub async fn replay<F>(&mut self, run_id: &str, agent: F) -> Result<RunReport, Fault>
     where
@@ -298,7 +298,7 @@ impl<O: AsyncOracle> AsyncRuntime<O> {
     }
 }
 
-/// Drive a future to completion on the current thread — a minimal,
+/// Drive a future to completion on the current thread - a minimal,
 /// dependency-free executor for CLIs, tests, and simple binaries. Servers
 /// should use their existing executor (tokio et al.); the runtime's futures
 /// are executor-agnostic.

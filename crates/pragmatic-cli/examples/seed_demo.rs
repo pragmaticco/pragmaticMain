@@ -40,6 +40,6 @@ fn main() {
     let _ = rt.run("payment-7", crashy); // faults on purpose: dangling intent
 
     println!("seeded {dir} with:");
-    println!("  research-42  — a completed run");
-    println!("  payment-7    — crashed inside an effect window (dangling intent)");
+    println!("  research-42  - a completed run");
+    println!("  payment-7    - crashed inside an effect window (dangling intent)");
 }

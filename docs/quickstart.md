@@ -55,12 +55,12 @@ println!("{}", report.output);
 ```
 
 Every oracle call's realized outcome now lands in
-`./journals/research-42.journal` — append-only, hash-chained, synced to disk
+`./journals/research-42.journal` - append-only, hash-chained, synced to disk
 as the run proceeds.
 
 ## 4. Crash. Recover.
 
-Kill the process anywhere — step nine of a thousand. Then:
+Kill the process anywhere - step nine of a thousand. Then:
 
 ```rust
 let report = rt.resume("research-42", research)?;
@@ -68,7 +68,7 @@ let report = rt.resume("research-42", research)?;
 
 The nine recorded steps are **read back from the journal** (zero model
 calls, zero duplicate effects); recording continues at step nine. The agent
-function cannot tell the difference — that is Theorem T1's content.
+function cannot tell the difference - that is Theorem T1's content.
 
 ## 5. Replay, exactly
 
@@ -77,10 +77,10 @@ let audit = rt.replay("research-42", research)?;   // the model is NEVER called
 assert_eq!(audit.trace, report.trace);
 ```
 
-Strict replay reproduces the run bit-for-bit — nondeterministic model
-behavior included — for time-travel debugging and audit.
+Strict replay reproduces the run bit-for-bit - nondeterministic model
+behavior included - for time-travel debugging and audit.
 
-## 6. Inspect from the terminal — or the console
+## 6. Inspect from the terminal - or the console
 
 ```sh
 cargo install pragmatic-cli
@@ -94,7 +94,7 @@ pragmatic serve  --dir ./journals            # live console on 127.0.0.1:7171
 
 ## Async agents
 
-Same API, `await`ed — executor-agnostic and still zero-dependency:
+Same API, `await`ed - executor-agnostic and still zero-dependency:
 
 ```rust
 use pragmatic::{AsyncCtx, AsyncRuntime, Fault, Value};
@@ -141,9 +141,9 @@ every CLI command above.
 
 ## Where next
 
-- [Concepts](concepts.md) — the execution model: Oracle, Journal, effects,
+- [Concepts](concepts.md) - the execution model: Oracle, Journal, effects,
   faults, capabilities.
-- `examples/tool_use_retries.rs` — flaky tools under a Supervisor.
-- `examples/map_reduce.rs` — multi-run coordination with per-agent recovery.
-- The [research page](https://aniketh.net/pragmatic/research/) — the calculus
+- `examples/tool_use_retries.rs` - flaky tools under a Supervisor.
+- `examples/map_reduce.rs` - multi-run coordination with per-agent recovery.
+- The [research page](https://aniketh.net/pragmatic/research/) - the calculus
   and proofs underneath.

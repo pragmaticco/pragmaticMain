@@ -1,5 +1,5 @@
 //! The landing-page example, runnable: a research agent that plans, probes,
-//! and synthesizes — then crashes on step nine of its probe loop, resumes
+//! and synthesizes - then crashes on step nine of its probe loop, resumes
 //! exactly (no re-sampling), and replays bit-for-bit for audit.
 //!
 //! ```sh
@@ -9,7 +9,7 @@
 use pragmatic::{Ctx, Fault, Runtime, SeededOracle, Value};
 
 /// Wrap the run. Every oracle call is journaled once, and the program's
-/// identity is journaled up front — a run recorded under this version of
+/// identity is journaled up front - a run recorded under this version of
 /// `research` refuses to replay under a changed one.
 #[pragmatic::durable]
 fn research(ctx: &mut Ctx) -> Result<Value, Fault> {

@@ -10,7 +10,7 @@ semantics are stable (they are the theorems), the API surface is not yet.
    that talks to the outside world (HTTP, model APIs, storage services)
    belongs in an adapter crate.
 2. **Semantics follow the calculus.** The runtime implements the Agentical
-   operational semantics — record/replay rules, the write-ahead effect
+   operational semantics - record/replay rules, the write-ahead effect
    discipline, cursor keys. A change that alters replay behavior needs an
    argument that it preserves T1 (replay soundness), not just passing tests.
    Reference the rule names (`[O-rec]`, `[Eff-intent]`, …) in comments the
@@ -31,7 +31,7 @@ cargo run -p pragmatic --example research_agent
 
 - Branch from `main`, keep PRs focused, describe the *behavioral* change.
 - New journal event kinds must extend `Event::encode`/`decode` with a fresh
-  tag (never reuse or renumber — journals on disk are forever) and add a
+  tag (never reuse or renumber - journals on disk are forever) and add a
   round-trip test.
 - Breaking on-disk format changes bump the journal `VERSION` and require a
   migration story in the PR description.

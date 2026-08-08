@@ -1,6 +1,6 @@
 //! Live-fire wire tests: drive `AnthropicOracle` through real TCP sockets
-//! against a local mock that speaks the Messages API's shapes — success,
-//! rate limits, server errors, malformed JSON — and through the full durable
+//! against a local mock that speaks the Messages API's shapes - success,
+//! rate limits, server errors, malformed JSON - and through the full durable
 //! runtime (record on the wire, replay with the server gone).
 //!
 //! A `#[ignore]`d test at the bottom hits the real API when
@@ -152,7 +152,7 @@ fn overloaded_and_malformed_are_faults_not_panics() {
 }
 
 /// The guarantee customers actually buy: record against the live wire, then
-/// kill the server — resume and replay still work, because outcomes come
+/// kill the server - resume and replay still work, because outcomes come
 /// from the journal, not the API.
 #[test]
 fn durable_run_survives_the_api_disappearing() {
@@ -187,7 +187,7 @@ fn durable_run_survives_the_api_disappearing() {
 
 /// The tool-use loop, end to end over real sockets: the model asks for a
 /// tool, the tool runs as a journaled effect, the result goes back, the
-/// model answers — then the API disappears and the whole loop (model turns
+/// model answers - then the API disappears and the whole loop (model turns
 /// AND tool results) replays from the journal with zero calls to either.
 #[test]
 fn tool_loop_records_resumes_and_replays() {
@@ -262,7 +262,7 @@ fn tool_loop_records_resumes_and_replays() {
     handle.join().unwrap(); // the API is now GONE
 
     // New process, dead endpoint: resume and replay serve every model turn
-    // and every tool result from the journal — the tool does not run again.
+    // and every tool result from the journal - the tool does not run again.
     let oracle = AnthropicOracle::new("k").base_url("http://127.0.0.1:1");
     let mut rt = Runtime::on_dir(&dir, oracle).unwrap();
     let resumed = rt.resume("tool-loop", agent.clone()).unwrap();

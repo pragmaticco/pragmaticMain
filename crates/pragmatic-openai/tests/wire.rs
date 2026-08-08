@@ -1,6 +1,6 @@
 //! Live-fire wire tests: drive `OpenAiOracle` through real TCP sockets
-//! against a local mock that speaks the Chat Completions API's shapes —
-//! success, rate limits, server errors, malformed JSON — and through the
+//! against a local mock that speaks the Chat Completions API's shapes -
+//! success, rate limits, server errors, malformed JSON - and through the
 //! full durable runtime (record on the wire, replay with the server gone).
 //!
 //! A `#[ignore]`d test at the bottom hits the real API when
@@ -165,7 +165,7 @@ fn server_error_and_malformed_are_faults_not_panics() {
 }
 
 /// The guarantee customers actually buy: record against the live wire, then
-/// kill the server — resume and replay still work, because outcomes come
+/// kill the server - resume and replay still work, because outcomes come
 /// from the journal, not the API.
 #[test]
 fn durable_run_survives_the_api_disappearing() {

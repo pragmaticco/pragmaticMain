@@ -28,7 +28,7 @@ pub enum Fault {
     Escalated(Box<Fault>),
     /// Replay found the journal disagreeing with the program: the re-executed
     /// code asked for a different step than the one recorded at `cursor`.
-    /// This is assumption A2 (same term replayed) failing — the agent code
+    /// This is assumption A2 (same term replayed) failing - the agent code
     /// changed between record and replay, or the journal belongs to a
     /// different program.
     JournalDesync {

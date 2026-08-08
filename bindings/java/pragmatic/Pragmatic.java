@@ -1,4 +1,4 @@
-// Pragmatic.java — Java binding for the Pragmatic durable-execution runtime.
+// Pragmatic.java - Java binding for the Pragmatic durable-execution runtime.
 //
 // Pure Java over the C ABI (crates/pragmatic-ffi) via java.lang.foreign
 // (JDK 22+); no JNI glue to compile. Point it at the built library with
@@ -227,7 +227,7 @@ public final class Pragmatic {
 
         /**
          * One model call, journaled once. Record: sample; replay: read back
-         * — the model is not called.
+         * - the model is not called.
          */
         public String oracle(String prompt) {
             try (Arena local = Arena.ofConfined()) {
@@ -413,7 +413,7 @@ public final class Pragmatic {
         }
 
         /**
-         * The observable trace — identical between a recorded run and its
+         * The observable trace - identical between a recorded run and its
          * replay (T1).
          */
         public List<TraceLabel> trace() {
@@ -555,7 +555,7 @@ public final class Pragmatic {
         }
 
         /**
-         * Start (or continue) a durable run — re-enterable, retries are
+         * Start (or continue) a durable run - re-enterable, retries are
          * idempotent.
          */
         public RunReport run(String runId, Agent agent) {

@@ -17,7 +17,7 @@ license = "BUSL-1.1"
 repository = "https://github.com/pragmaticco/pragmaticMain"
 homepage = "https://aniketh.net/pragmatic/"
 readme = "README.md"
-authors = ["Pragmatic <me@aniketh.net>"]
+authors = ["Pragmatic Research, Inc. <me@aniketh.net>"]
 
 [profile.release]
 lto = true

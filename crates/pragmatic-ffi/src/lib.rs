@@ -1,4 +1,4 @@
-//! C ABI for Pragmatic — durable execution for agents that don't run
+//! C ABI for Pragmatic - durable execution for agents that don't run
 //! deterministically.
 //!
 //! One flat `extern "C"` surface over [`pragmatic::Runtime`] and
@@ -25,7 +25,7 @@
 //! (so `BudgetExhausted` stays `BudgetExhausted` instead of collapsing into
 //! a tool error); an agent that fails on its own reports a tool fault with
 //! its `err_out` message. Callbacks must not unwind (longjmp / C++
-//! exceptions across the boundary are undefined behavior) — the wrappers
+//! exceptions across the boundary are undefined behavior) - the wrappers
 //! catch and convert before returning.
 
 // Every exported fn is `unsafe extern "C"`; the safety contract (string
@@ -161,7 +161,7 @@ pub type PragOracleFn = unsafe extern "C" fn(
 
 /// Your agent body: drive the ctx, return a `prag_str_new` output, or NULL
 /// with `*err_out` set on failure (a faulted ctx call propagates its typed
-/// fault — see module docs).
+/// fault - see module docs).
 pub type PragAgentFn = unsafe extern "C" fn(
     user: *mut c_void,
     ctx: *mut PragCtx,
@@ -215,7 +215,7 @@ impl Oracle for CallbackOracle {
 /// finishes, so a leaked reference fails loudly instead of dangling.
 pub struct PragCtx {
     ptr: *mut pragmatic::Ctx<'static>,
-    /// The last typed fault a ctx call hit — propagated when the agent
+    /// The last typed fault a ctx call hit - propagated when the agent
     /// callback subsequently fails, cleared on the next successful call.
     pending: Option<Fault>,
 }
@@ -257,7 +257,7 @@ unsafe fn ctx_value_call(
     }
 }
 
-/// One model call, journaled once. Record: sample; replay: read back — the
+/// One model call, journaled once. Record: sample; replay: read back - the
 /// model is not called. Returns a caller-owned string, or NULL on fault.
 #[no_mangle]
 pub unsafe extern "C" fn prag_ctx_oracle(
@@ -489,7 +489,7 @@ pub unsafe extern "C" fn prag_report_fresh_steps(r: *const PragReport) -> u64 {
 }
 
 /// Number of labels in the observable trace (identical between a recorded
-/// run and its replay — T1).
+/// run and its replay - T1).
 #[no_mangle]
 pub unsafe extern "C" fn prag_report_trace_len(r: *const PragReport) -> u64 {
     report(r).map(|i| i.trace.len() as u64).unwrap_or(0)

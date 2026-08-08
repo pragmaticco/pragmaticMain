@@ -6,8 +6,8 @@ name: Release
 #   - abi3 wheels + sdist for `pragmatic-runtime` to PyPI
 #
 # Required repo secrets:
-#   CARGO_REGISTRY_TOKEN — crates.io API token (publish scope)
-#   PYPI_API_TOKEN       — PyPI token for the pragmatic-runtime project
+#   CARGO_REGISTRY_TOKEN - crates.io API token (publish scope)
+#   PYPI_API_TOKEN       - PyPI token for the pragmatic-runtime project
 on:
   push:
     tags: ["v*"]

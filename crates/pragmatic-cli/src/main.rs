@@ -1,4 +1,4 @@
-//! `pragmatic` — journal tooling for the Pragmatic runtime.
+//! `pragmatic` - journal tooling for the Pragmatic runtime.
 //!
 //! ```text
 //! pragmatic runs   [--dir DIR]                       list runs and their status
@@ -192,7 +192,7 @@ fn cmd_show(args: &Args) -> Result<(), String> {
     let dangling = j.dangling_intents();
     if !dangling.is_empty() {
         println!(
-            "dangling : {} effect intent(s) without commit — crashed mid-effect",
+            "dangling : {} effect intent(s) without commit - crashed mid-effect",
             dangling.len()
         );
     }
@@ -260,7 +260,7 @@ fn cmd_export(args: &Args) -> Result<(), String> {
 
 fn help() {
     println!(
-        "pragmatic — journal tooling for the Pragmatic durable-execution runtime
+        "pragmatic - journal tooling for the Pragmatic durable-execution runtime
 
 USAGE:
     pragmatic runs   [--dir DIR] [--key KEY]

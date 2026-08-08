@@ -1,4 +1,4 @@
-//! `JournalStore` — where a runtime keeps its journals and channel inboxes.
+//! `JournalStore` - where a runtime keeps its journals and channel inboxes.
 //!
 //! Shared by the sync [`Runtime`](crate::Runtime) and the async
 //! [`AsyncRuntime`](crate::AsyncRuntime): journal loading/creation (memory or

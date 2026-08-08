@@ -1,6 +1,6 @@
 //! The async runtime carries the same guarantees as the sync one: replay
 //! determinism, crash recovery without re-sampling, strict replay never
-//! touching the model — driven by the built-in `block_on` (no executor
+//! touching the model - driven by the built-in `block_on` (no executor
 //! dependency).
 
 use pragmatic::{
@@ -97,7 +97,7 @@ impl AsyncOracle for YieldingOracle {
     fn call(&self, prompt: &Value) -> impl std::future::Future<Output = Result<Value, Fault>> + '_ {
         let prompt = prompt.clone();
         async move {
-            // Yield to the executor once, then answer — proves the runtime
+            // Yield to the executor once, then answer - proves the runtime
             // survives suspension points mid-step.
             yield_once().await;
             pragmatic::Oracle::call(&self.0, &prompt)
@@ -180,7 +180,7 @@ fn async_file_journal_survives_restart() {
 
 /// Regression: a journal holding a compensated effect pair followed by the
 /// re-performed pair (`Intent, Compensated, Intent, Commit`) must replay by
-/// consuming BOTH pairs — falling through after the compensated pair used to
+/// consuming BOTH pairs - falling through after the compensated pair used to
 /// skip the second pair and desync every later step.
 #[test]
 fn compensated_then_recommitted_effect_replays_exactly() {
@@ -194,7 +194,7 @@ fn compensated_then_recommitted_effect_replays_exactly() {
                     Ok(Value::from(format!("charged({arg})")))
                 }
             })?;
-            // A step AFTER the effect — the one that desyncs if the effect
+            // A step AFTER the effect - the one that desyncs if the effect
             // replay loop is wrong.
             ctx.oracle(format!("receipt for {r}"))
         }

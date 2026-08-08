@@ -1,4 +1,4 @@
-//! The **Oracle** — an LLM call modeled as a first-class probability
+//! The **Oracle** - an LLM call modeled as a first-class probability
 //! distribution (paper Definition 3.5), not an opaque activity.
 //!
 //! The Oracle is the *sole* source of probabilistic nondeterminism in the
@@ -6,7 +6,7 @@
 //! Journal; replay reads outcomes back instead of calling the model again.
 //!
 //! Implement [`Oracle`] for your model client (Anthropic, OpenAI, a local
-//! server, a tool with stochastic output — anything whose result is a draw
+//! server, a tool with stochastic output - anything whose result is a draw
 //! from a distribution). The runtime does not depend on any particular model.
 
 use std::cell::Cell;
@@ -19,7 +19,7 @@ use crate::value::Value;
 ///
 /// `call` is only invoked in record mode ([O-rec]) or when a resumed run
 /// walks past its journaled prefix ([O-resume]). In replay mode the runtime
-/// never calls it — that is the whole point.
+/// never calls it - that is the whole point.
 pub trait Oracle {
     /// Sample one outcome for `prompt` from the model's distribution.
     fn call(&self, prompt: &Value) -> Result<Value, Fault>;
@@ -35,7 +35,7 @@ pub trait Oracle {
 /// A seeded, genuinely stochastic test oracle.
 ///
 /// Each call draws from a deterministic PRNG stream (xorshift64*, seeded),
-/// mixed with the prompt digest — so different seeds give different runs,
+/// mixed with the prompt digest - so different seeds give different runs,
 /// the *sequence* of calls matters (stateful, like a real sampler), and
 /// tests get reproducible nondeterminism without a live model.
 pub struct SeededOracle {
@@ -54,7 +54,7 @@ impl SeededOracle {
     }
 
     fn next(&self) -> u64 {
-        // xorshift64* — small, fast, fine for test randomness.
+        // xorshift64* - small, fast, fine for test randomness.
         let mut x = self.state.get();
         x ^= x >> 12;
         x ^= x << 25;
@@ -90,7 +90,7 @@ impl Oracle for SeededOracle {
     }
 }
 
-/// Wraps any oracle and counts calls — the instrument for proving "replay
+/// Wraps any oracle and counts calls - the instrument for proving "replay
 /// performs zero model calls" and "resume never re-samples the prefix".
 pub struct CountingOracle<O> {
     inner: O,
@@ -125,7 +125,7 @@ impl<O: Oracle> Oracle for CountingOracle<O> {
 /// Wraps any oracle with bounded retries and exponential backoff on
 /// transient model failures.
 ///
-/// Only [`Fault::OracleErr`] is retried — that is the tag for "the model
+/// Only [`Fault::OracleErr`] is retried - that is the tag for "the model
 /// call itself failed" (rate limit, overload, transport). Every other fault
 /// is a property of the run, not the call, and passes straight through.
 /// Because the runtime journals the *realized* outcome, retries happen

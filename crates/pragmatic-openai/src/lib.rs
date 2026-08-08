@@ -1,4 +1,4 @@
-//! Any OpenAI-compatible Chat Completions server as a journaled **Oracle** —
+//! Any OpenAI-compatible Chat Completions server as a journaled **Oracle** -
 //! OpenAI itself, or the same API spoken by Ollama, vLLM, llama.cpp, Groq,
 //! and most other inference servers.
 //!
@@ -11,7 +11,7 @@
 //!     .expect("set OPENAI_API_KEY")
 //!     .model("gpt-5");
 //!
-//! // ...or a local model — no key needed:
+//! // ...or a local model - no key needed:
 //! let local = OpenAiOracle::new("")
 //!     .base_url("http://localhost:11434/v1")
 //!     .model("llama3.3");
@@ -98,7 +98,7 @@ impl OpenAiOracle {
 
     /// Point at any compatible server: `http://localhost:11434/v1` (Ollama),
     /// a vLLM deployment, a gateway, a mock in tests. The path is the API
-    /// root — `/chat/completions` is appended.
+    /// root - `/chat/completions` is appended.
     pub fn base_url(mut self, url: impl Into<String>) -> Self {
         let mut url = url.into();
         while url.ends_with('/') {

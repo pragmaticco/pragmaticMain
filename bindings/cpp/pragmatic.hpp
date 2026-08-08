@@ -1,4 +1,4 @@
-// pragmatic.hpp — C++17 binding for the Pragmatic durable-execution runtime.
+// pragmatic.hpp - C++17 binding for the Pragmatic durable-execution runtime.
 //
 // Header-only RAII wrapper over the C ABI (crates/pragmatic-ffi,
 // include/pragmatic.h). Link against libpragmatic_ffi.
@@ -111,7 +111,7 @@ public:
     /// Steps recorded fresh this attempt.
     std::uint64_t fresh_steps() const { return prag_report_fresh_steps(raw_.get()); }
 
-    /// The observable trace — identical between a recorded run and its
+    /// The observable trace - identical between a recorded run and its
     /// replay (T1).
     std::vector<TraceLabel> trace() const {
         std::vector<TraceLabel> out;
@@ -143,7 +143,7 @@ class Ctx {
 public:
     using Effect = std::function<std::string(const std::string&)>;
 
-    /// One model call, journaled once. Record: sample; replay: read back —
+    /// One model call, journaled once. Record: sample; replay: read back -
     /// the model is not called.
     std::string oracle(const std::string& prompt) {
         char* err = nullptr;
@@ -229,7 +229,7 @@ public:
         raw_.reset(rt);
     }
 
-    /// Start (or continue) a durable run — re-enterable, retries are
+    /// Start (or continue) a durable run - re-enterable, retries are
     /// idempotent.
     RunReport run(const std::string& run_id, const Agent& agent) {
         return drive(prag_runtime_run, run_id, agent);

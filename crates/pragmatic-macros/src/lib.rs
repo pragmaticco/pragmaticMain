@@ -1,10 +1,10 @@
-//! `#[pragmatic::durable]` — mark an agent function as a durable program.
+//! `#[pragmatic::durable]` - mark an agent function as a durable program.
 //!
 //! The macro does one thing, and it matters: it computes a stable hash of the
 //! function's source tokens and injects a `program_marker` call at the top of
 //! the body. The marker is journaled on record and *verified* on replay, so a
 //! run recorded under one version of your agent refuses to replay under
-//! another — assumption A2 ("the same term is replayed") becomes an enforced
+//! another - assumption A2 ("the same term is replayed") becomes an enforced
 //! property instead of a footgun.
 //!
 //! ```ignore
@@ -17,7 +17,7 @@
 //!
 //! Requirements: the function's **first parameter** must be the `&mut Ctx`
 //! (any binding name), and it must return `Result<_, Fault>` (the marker uses
-//! `?`). The macro is a token-level transform with zero dependencies — no
+//! `?`). The macro is a token-level transform with zero dependencies - no
 //! syn, no quote.
 
 use proc_macro::{Delimiter, Group, TokenStream, TokenTree};

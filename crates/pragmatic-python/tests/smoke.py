@@ -1,7 +1,7 @@
 """Smoke test for the pragmatic Python bindings.
 
 Run after building the extension (see README): record, crash-resume,
-strict replay, effects, channels, and chain verification — the same
+strict replay, effects, channels, and chain verification - the same
 guarantees the Rust suites prove, exercised from Python.
 """
 
@@ -17,7 +17,7 @@ calls = {"n": 0}
 
 def oracle(prompt: str) -> str:
     calls["n"] += 1
-    # Deterministic per (seed, sequence) but different across draws — a
+    # Deterministic per (seed, sequence) but different across draws - a
     # stand-in for a stochastic model.
     rng = random.Random(f"{calls['n']}:{prompt}")
     return f"{rng.choice(['plan', 'answer', 'refine'])}:{rng.getrandbits(32):x}"

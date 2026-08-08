@@ -4,7 +4,7 @@
 //! Three mapper runs each summarize a shard; a reducer run receives their
 //! summaries over channels and synthesizes the final answer. Every receive
 //! is journaled, so when one mapper crashes it recovers from *its own*
-//! journal without unwinding the others — and the reducer replays exactly.
+//! journal without unwinding the others - and the reducer replays exactly.
 //!
 //! ```sh
 //! cargo run -p pragmatic --example map_reduce
@@ -25,7 +25,7 @@ fn mapper(ctx: &mut Ctx, shard: &str) -> Result<Value, Fault> {
 fn reducer(ctx: &mut Ctx) -> Result<Value, Fault> {
     let mut summaries = Vec::new();
     for i in 0..SHARDS.len() {
-        // Receives are journaled ([Rcv-rec]) — replay is exact even though
+        // Receives are journaled ([Rcv-rec]) - replay is exact even though
         // arrival order is scheduler-determined.
         summaries.push(ctx.recv(&format!("mapper-{i}"))?);
     }

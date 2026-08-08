@@ -1,4 +1,4 @@
-//! Python bindings for Pragmatic — durable execution for agents that don't
+//! Python bindings for Pragmatic - durable execution for agents that don't
 //! run deterministically.
 //!
 //! ```python
@@ -82,7 +82,7 @@ impl Ctx {
 
 #[pymethods]
 impl Ctx {
-    /// One model call, journaled once. Record: sample; replay: read back —
+    /// One model call, journaled once. Record: sample; replay: read back -
     /// the model is not called.
     fn oracle(&mut self, prompt: &str) -> PyResult<String> {
         let v = self.get()?.oracle(prompt).map_err(fault_err)?;
@@ -90,7 +90,7 @@ impl Ctx {
     }
 
     /// A durable effect under the write-ahead discipline. `perform` is a
-    /// Python callable `(str) -> str` — your tool call / external write.
+    /// Python callable `(str) -> str` - your tool call / external write.
     /// Replay reuses the recorded result without re-performing.
     fn effect(&mut self, name: &str, arg: &str, perform: PyObject) -> PyResult<String> {
         let ctx = self.get()?;
@@ -253,7 +253,7 @@ impl Runtime {
 
 #[pymethods]
 impl Runtime {
-    /// `Runtime(dir, oracle, key=None)` — journals persist under `dir` (one
+    /// `Runtime(dir, oracle, key=None)` - journals persist under `dir` (one
     /// append-only file per run); `oracle` is a callable `(str) -> str`
     /// wrapping your model; `key` (bytes) HMAC-signs the journals.
     #[new]

@@ -1,4 +1,4 @@
-//! **Memory** — an IFC-labeled store (paper §3.6).
+//! **Memory** - an IFC-labeled store (paper §3.6).
 //!
 //! Cells carry an information-flow label from a two-point lattice
 //! (`Low ⊑ High`). Reads enforce *no read-up* (a Low-cleared reader cannot
@@ -7,7 +7,7 @@
 //! the noninterference result (T2): secret inputs cannot flow into public
 //! observations.
 //!
-//! Memory is internally determined, so it is **not** journaled — replay
+//! Memory is internally determined, so it is **not** journaled - replay
 //! reconstructs it by re-execution (paper §4.5, [Mem-rd]/[Mem-wr]).
 
 use std::collections::HashMap;
@@ -80,7 +80,7 @@ impl Store {
         Ok(())
     }
 
-    /// The Low-observable view of the store — what a public observer sees
+    /// The Low-observable view of the store - what a public observer sees
     /// (paper §4.4 `obs_Lo`). T2's claim is that High inputs never change
     /// this projection.
     pub fn low_view(&self) -> Vec<(&str, &Value)> {

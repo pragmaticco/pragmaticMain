@@ -1,6 +1,6 @@
 //! A real tool-use agent, durable end to end: Claude decides when to call
 //! tools, each tool runs as a write-ahead journaled effect, and the whole
-//! loop — model turns and tool results — records, resumes, and replays.
+//! loop - model turns and tool results - records, resumes, and replays.
 //!
 //! ```sh
 //! ANTHROPIC_API_KEY=... cargo run -p pragmatic-anthropic --example tool_loop
@@ -72,8 +72,8 @@ fn main() {
         recorded.fresh_steps, recorded.replayed_steps
     );
 
-    // The audit: the entire conversation — every model turn, every tool
-    // call — replays from the journal. The model is never consulted.
+    // The audit: the entire conversation - every model turn, every tool
+    // call - replays from the journal. The model is never consulted.
     let audit = rt.replay("tool-loop-demo", agent).expect("replay");
     assert_eq!(audit.trace, recorded.trace);
     println!("replay : bit-identical, zero model calls, zero tool runs");

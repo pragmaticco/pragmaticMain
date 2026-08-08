@@ -1,6 +1,6 @@
 // Package pragmatic is the Go binding for the Pragmatic durable-execution
 // runtime: a journal of every step an agent takes (model calls, effects,
-// receives, clock reads), so a run survives any crash and replays exactly —
+// receives, clock reads), so a run survives any crash and replays exactly -
 // nondeterministic model behavior included.
 //
 // It binds the C ABI (crates/pragmatic-ffi) via cgo; build libpragmatic_ffi
@@ -217,7 +217,7 @@ type Ctx struct {
 }
 
 // Oracle makes one model call, journaled once. Record: sample; replay: read
-// back — the model is not called.
+// back - the model is not called.
 func (c *Ctx) Oracle(prompt string) (string, error) {
 	cPrompt := C.CString(prompt)
 	defer C.free(unsafe.Pointer(cPrompt))
@@ -361,7 +361,7 @@ func (rt *Runtime) drive(f driveFn, runID string, agent Agent) (*RunReport, erro
 	}, nil
 }
 
-// Run starts (or continues) a durable run — re-enterable, retries are
+// Run starts (or continues) a durable run - re-enterable, retries are
 // idempotent.
 func (rt *Runtime) Run(runID string, agent Agent) (*RunReport, error) {
 	return rt.drive(func(r *C.PragRuntime, id *C.char, u unsafe.Pointer,

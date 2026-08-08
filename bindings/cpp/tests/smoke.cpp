@@ -1,5 +1,5 @@
 // Smoke test for the C++ binding: record → resume → replay parity, durable
-// effects, typed faults, channels, and hash-chain verification — the same
+// effects, typed faults, channels, and hash-chain verification - the same
 // scenario the Rust, Python, and C ABI tests run.
 
 #include <unistd.h>
@@ -53,7 +53,7 @@ int main() {
     assert(report.chain_head().size() == 64);
     const auto recorded_trace = report.trace();
 
-    // Resume: everything comes from the journal — no model calls, and the
+    // Resume: everything comes from the journal - no model calls, and the
     // effect is not re-performed.
     auto resumed = rt.resume("cpp-research-1", agent);
     assert(oracle_calls == 4);

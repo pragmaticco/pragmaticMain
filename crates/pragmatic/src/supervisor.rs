@@ -1,8 +1,8 @@
-//! The **Supervisor** — the control plane that turns a crashed run into a
+//! The **Supervisor** - the control plane that turns a crashed run into a
 //! resumed one (paper §3.8).
 //!
 //! A supervisor maps faults to decisions: **restart** (re-enter from the
-//! journal — precisely the `replay(N, J↾id)` transition T1 certifies sound),
+//! journal - precisely the `replay(N, J↾id)` transition T1 certifies sound),
 //! **compensate** (run the saga against committed effects, in reverse),
 //! **escalate** (re-raise to the parent), or **stop**.
 
@@ -50,7 +50,7 @@ pub struct Supervisor {
     max_restarts: u32,
     decide: Box<dyn Fn(&Fault) -> Decision>,
     /// Called for each committed effect during compensation, in reverse
-    /// commit order — this is where your saga undoes the world.
+    /// commit order - this is where your saga undoes the world.
     compensator: Option<Compensator>,
 }
 
