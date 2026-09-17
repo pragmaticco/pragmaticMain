@@ -312,9 +312,9 @@ replay swaps in an oracle that refuses to sample, so a stray draw is an error,
 not a silent API call. This is Theorem T1, proved on paper and checked
 empirically by the test suite (1000/1000 runs replay byte-identically).
 
-**How much does journaling cost?** An append is O(1) - sub-microsecond
-including full SHA-256 chaining (~0.45 µs on an Apple M5 Pro), flat from a
-thousand to a million entries.
+**How much does journaling cost?** An append is O(1) - roughly 0.44 µs at a
+million entries on an Apple M5 Pro, including full SHA-256 chaining, and flat
+from a thousand to a million entries.
 
 **Where are my secrets?** Journals store prompts and completions in
 plaintext by design - they are the audit trail. Treat the journal directory

@@ -7,8 +7,9 @@
 //!     a latency-injected oracle replay is orders of magnitude faster than
 //!     recording.
 //!
-//! Run with `--release` for the headline numbers (sub-microsecond appends;
-//! ~0.45 us measured on an Apple M5 Pro); the
+//! Run with `--release` for the headline numbers (~0.44 us per append at 1M
+//! entries on an Apple M5 Pro; the 1k figure is noisier, since it includes
+//! allocator warm-up); the
 //! assertions here are deliberately loose so the suite stays green under
 //! debug builds and CI noise - E3 asserts *shape* (flatness, speedup), not
 //! absolute nanoseconds.

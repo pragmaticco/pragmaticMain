@@ -115,7 +115,7 @@ Every number below is a test in this repo (`cargo test --release`):
 | **Replay determinism** (E1) | 1000 / 1000 seeded stochastic runs replay byte-identically, zero model calls |
 | **Crash recovery** (E2) | Crash at *every* journal prefix → exact resume; no re-sampling; no orphaned effects; survives process restarts |
 | **Tool-use loop** | Full Messages-API tool loop recorded over real sockets; API killed; resume + replay byte-identical; tool performed exactly once, ever |
-| **Journal overhead** (E3) | O(1) append, flat from 1k to 1M entries (sub-µs incl. full SHA-256 chaining; ~0.45 µs on an Apple M5 Pro) |
+| **Journal overhead** (E3) | O(1) append, flat from 1k to 1M entries (~0.44 µs steady-state at 1M on an Apple M5 Pro, incl. full SHA-256 chaining) |
 | **Replay speedup** (E3) | ~1000× under a 1 ms/draw oracle - replay performs zero oracle calls |
 | **Tamper evidence** | Any post-hoc edit breaks the chain at that cursor; HMAC-keyed journals refuse the wrong key |
 | **Code-change safety** | A journal recorded under one agent version refuses to replay under another (`JournalDesync` at cursor 0) |
