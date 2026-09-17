@@ -1,6 +1,7 @@
 //! The landing-page example, runnable: a research agent that plans, probes,
 //! and synthesizes - then crashes on step nine of its probe loop, resumes
-//! exactly (no re-sampling), and replays bit-for-bit for audit.
+//! without re-sampling a single journaled step (only the steps the crash
+//! destroyed are drawn again), and replays bit-for-bit for audit.
 //!
 //! ```sh
 //! cargo run --example research_agent

@@ -12,7 +12,7 @@ agent actually did.**
 ![status: public beta](https://img.shields.io/badge/status-public%20beta-brightgreen.svg)
 
 [Usage guide](docs/usage.md) · [Quickstart](docs/quickstart.md) · [Concepts](docs/concepts.md) ·
-[Strategy](docs/STRATEGY.md) · [Research](https://aniketh.net/pragmatic/research/) ·
+[Strategy](docs/STRATEGY.md) · [Research](docs/concepts.md) ·
 [Early access / design partners](mailto:me@aniketh.net?subject=Pragmatic%20early%20access)
 
 </div>
@@ -39,8 +39,8 @@ deterministic yourself. They were never built for (2). Pragmatic is built
 for both, and the reason it can be is the thesis: **each LLM call is
 modeled as a first-class probability distribution** (the **Oracle**), every
 realized outcome lands in the **Journal**, and replay soundness (**T1**) is
-proved in the [Agentical calculus](https://aniketh.net/pragmatic/research/)
-- mechanized in Lean 4, not assumed.
+proved in the [Agentical calculus](docs/concepts.md) - derived from the
+semantics, not assumed.
 
 ## Three guarantees, every run
 
@@ -115,7 +115,7 @@ Every number below is a test in this repo (`cargo test --release`):
 | **Replay determinism** (E1) | 1000 / 1000 seeded stochastic runs replay byte-identically, zero model calls |
 | **Crash recovery** (E2) | Crash at *every* journal prefix → exact resume; no re-sampling; no orphaned effects; survives process restarts |
 | **Tool-use loop** | Full Messages-API tool loop recorded over real sockets; API killed; resume + replay byte-identical; tool performed exactly once, ever |
-| **Journal overhead** (E3) | O(1) append, flat from 1k to 1M entries (~0.8 µs incl. full SHA-256 chaining) |
+| **Journal overhead** (E3) | O(1) append, flat from 1k to 1M entries (sub-µs incl. full SHA-256 chaining; ~0.45 µs on an Apple M5 Pro) |
 | **Replay speedup** (E3) | ~1000× under a 1 ms/draw oracle - replay performs zero oracle calls |
 | **Tamper evidence** | Any post-hoc edit breaks the chain at that cursor; HMAC-keyed journals refuse the wrong key |
 | **Code-change safety** | A journal recorded under one agent version refuses to replay under another (`JournalDesync` at cursor 0) |
@@ -133,7 +133,7 @@ agent itself** must be recoverable and auditable:
 | The history | Engine-internal state | An audit artifact: hash-chained, tamper-evident, optionally HMAC-keyed, exportable as a single HTML file you attach to the incident ticket |
 | Replay for audit | Re-run your code against history inside the engine | A first-class mode in which the model is *provably* never consulted (the oracle is replaced by one that refuses) |
 | Operations | A cluster/service to provision | A zero-dependency library that links into the agent you already run - Linux, containers, any cloud |
-| Soundness | Assumed, given your discipline | Proved (T1), mechanized in Lean 4; probability bounds (T3) and information-flow discipline (T2) on paper |
+| Soundness | Assumed, given your discipline | Proved (T1) in the calculus and validated empirically (E1: 1000/1000); probability bounds (T3) and information-flow discipline (T2) on paper |
 
 ## The workspace
 
@@ -167,9 +167,13 @@ contain prompts and outputs.
 
 ## Honest scope
 
-- **T1** is mechanized in Lean 4 (operational core, sorry-free) and
-  demonstrated empirically here. **T2/T3** are pen-and-paper results; the
-  runtime implements their disciplines, the theorems are not yet mechanized.
+- **T1** is proved on paper in the Agentical calculus and demonstrated
+  empirically here (E1: 1000/1000 runs replay byte-identically). A Lean 4
+  mechanization is in progress - the syntax, semantics and journal model are
+  formalized and T1 is stated, but the proof bodies are still `sorry`. It is a
+  skeleton, not a machine-checked proof, and we do not claim it as one.
+  **T2/T3** are pen-and-paper results; the runtime implements their
+  disciplines, the theorems are not mechanized.
 - Single-process journals on local disk. The managed cloud backend (hosted
   journaling at scale, shared console, alerting) is the commercial layer -
   it changes operations, not semantics.
@@ -188,7 +192,7 @@ Pragmatic's guarantees are real because they are proved. The theory is
 **Agentical** - a probabilistic process calculus with six primitives (Agent,
 Oracle, Channel, Memory, Journal, Supervisor), probabilistic small-step
 semantics in record and replay modes, and three theorems stated with honest
-scope. [Read the research](https://aniketh.net/pragmatic/research/).
+scope. [Read the concepts doc](docs/concepts.md).
 
 ## License & commercial use
 

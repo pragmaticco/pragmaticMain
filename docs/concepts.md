@@ -22,9 +22,10 @@ Pragmatic starts from the nondeterminism instead:
 - replay **reads outcomes back** rather than re-sampling.
 
 Theorem **T1 (replay soundness)**: replaying a journal reproduces the
-recorded run's trace exactly, with probability 1. Proved in the paper,
-mechanized in Lean 4 for the operational core, and demonstrated empirically
-by this repo's E1 suite (1000/1000).
+recorded run's trace exactly, with probability 1. Proved in the paper and
+demonstrated empirically by this repo's E1 suite (1000/1000). A Lean 4
+mechanization of the operational core is in progress: the model and the
+theorem statements are formalized, the proof bodies are not yet discharged.
 
 ## The two modes
 
@@ -121,5 +122,6 @@ byte-compatible across all three surfaces and the CLI.
 - **Distributed journals**: one process, local files. The managed/cloud
   backend (hosted journaling, shared console, alerting) is the commercial
   layer on top.
-- **T2/T3 mechanization**: proved on paper, enforced in the runtime, not
-  yet in Lean.
+- **Lean mechanization**: T1/T2/T3 are proved on paper and enforced in the
+  runtime. The Lean 4 development formalizes the model and states T1, but no
+  theorem is machine-checked yet.

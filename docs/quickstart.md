@@ -145,5 +145,4 @@ every CLI command above.
   faults, capabilities.
 - `examples/tool_use_retries.rs` - flaky tools under a Supervisor.
 - `examples/map_reduce.rs` - multi-run coordination with per-agent recovery.
-- The [research page](https://aniketh.net/pragmatic/research/) - the calculus
-  and proofs underneath.
+- [Concepts](concepts.md) - the calculus and proofs underneath.
