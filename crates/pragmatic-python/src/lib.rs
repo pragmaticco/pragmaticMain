@@ -35,12 +35,12 @@ fn fault_err(f: Fault) -> PyErr {
 
 /// A `pragmatic_rt::Oracle` backed by a Python callable `(str) -> str`.
 struct PyCallableOracle {
-    func: PyObject,
+    func: Py<PyAny>,
 }
 
 impl Oracle for PyCallableOracle {
     fn call(&self, prompt: &Value) -> Result<Value, Fault> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let out = self
                 .func
                 .call1(py, (prompt.as_str().into_owned(),))
@@ -53,7 +53,7 @@ impl Oracle for PyCallableOracle {
     }
 
     fn provenance(&self) -> String {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             self.func
                 .bind(py)
                 .getattr("__name__")
@@ -92,11 +92,11 @@ impl Ctx {
     /// A durable effect under the write-ahead discipline. `perform` is a
     /// Python callable `(str) -> str` - your tool call / external write.
     /// Replay reuses the recorded result without re-performing.
-    fn effect(&mut self, name: &str, arg: &str, perform: PyObject) -> PyResult<String> {
+    fn effect(&mut self, name: &str, arg: &str, perform: Py<PyAny>) -> PyResult<String> {
         let ctx = self.get()?;
         let result = ctx
             .effect(name, arg, |a| {
-                Python::with_gil(|py| {
+                Python::attach(|py| {
                     let out = perform
                         .call1(py, (a.as_str().into_owned(),))
                         .map_err(|e| Fault::ToolErr(format!("python effect raised: {e}")))?;
@@ -217,7 +217,7 @@ impl Runtime {
         &mut self,
         py: Python<'_>,
         run_id: &str,
-        agent: PyObject,
+        agent: Py<PyAny>,
         mode: Mode,
     ) -> PyResult<RunReport> {
         let agent_fn = |ctx: &mut pragmatic_rt::Ctx| -> Result<Value, Fault> {
@@ -258,7 +258,7 @@ impl Runtime {
     /// wrapping your model; `key` (bytes) HMAC-signs the journals.
     #[new]
     #[pyo3(signature = (dir, oracle, key=None))]
-    fn new(dir: &str, oracle: PyObject, key: Option<Bound<'_, PyBytes>>) -> PyResult<Self> {
+    fn new(dir: &str, oracle: Py<PyAny>, key: Option<Bound<'_, PyBytes>>) -> PyResult<Self> {
         let mut inner = pragmatic_rt::Runtime::on_dir(dir, PyCallableOracle { func: oracle })
             .map_err(|e| PyRuntimeError::new_err(e.to_string()))?;
         if let Some(k) = key {
@@ -269,19 +269,19 @@ impl Runtime {
 
     /// Start (or continue) a durable run. Re-enterable: an existing journal
     /// prefix is replayed first, so retries are idempotent.
-    fn run(&mut self, py: Python<'_>, run_id: &str, agent: PyObject) -> PyResult<RunReport> {
+    fn run(&mut self, py: Python<'_>, run_id: &str, agent: Py<PyAny>) -> PyResult<RunReport> {
         self.drive(py, run_id, agent, Mode::Run)
     }
 
     /// Resume a crashed run: the journaled prefix is read back (zero model
     /// calls, no duplicate effects); recording continues at the tail.
-    fn resume(&mut self, py: Python<'_>, run_id: &str, agent: PyObject) -> PyResult<RunReport> {
+    fn resume(&mut self, py: Python<'_>, run_id: &str, agent: Py<PyAny>) -> PyResult<RunReport> {
         self.drive(py, run_id, agent, Mode::Resume)
     }
 
     /// Replay a recorded run bit-for-bit for debugging and audit. The model
     /// is never called.
-    fn replay(&mut self, py: Python<'_>, run_id: &str, agent: PyObject) -> PyResult<RunReport> {
+    fn replay(&mut self, py: Python<'_>, run_id: &str, agent: Py<PyAny>) -> PyResult<RunReport> {
         self.drive(py, run_id, agent, Mode::Replay)
     }
 
