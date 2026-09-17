@@ -25,7 +25,8 @@ benefit. Rationale:
   provably never consulted). Teams deploying agents in regulated or
   high-stakes settings have this problem, budget for it, and no incumbent
   to displace.
-- The formal results (T1 mechanized in Lean) are the *credibility backing*
+- The formal results (T1 proved in the calculus; Lean mechanization still in
+  progress) are the *credibility backing*
   for the audit claim - not the headline. Buyers don't purchase theorems;
   they purchase "we can answer the auditor."
 

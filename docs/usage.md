@@ -309,11 +309,12 @@ zero. Replaying an old journal under changed code fails fast with a
 
 **Is replay actually free of model calls?** Yes, by construction. Strict
 replay swaps in an oracle that refuses to sample, so a stray draw is an error,
-not a silent API call. This is Theorem T1, mechanized in Lean 4 and checked by
-the test suite (1000/1000 runs replay byte-identically).
+not a silent API call. This is Theorem T1, proved on paper and checked
+empirically by the test suite (1000/1000 runs replay byte-identically).
 
-**How much does journaling cost?** An append is O(1) - roughly 0.8 µs
-including full SHA-256 chaining, flat from a thousand to a million entries.
+**How much does journaling cost?** An append is O(1) - roughly 0.44 µs at a
+million entries on an Apple M5 Pro, including full SHA-256 chaining, and flat
+from a thousand to a million entries.
 
 **Where are my secrets?** Journals store prompts and completions in
 plaintext by design - they are the audit trail. Treat the journal directory
@@ -331,5 +332,5 @@ like you'd treat your logs, and read [SECURITY.md](../SECURITY.md).
 - [`crates/pragmatic-anthropic/examples/tool_loop.rs`](../crates/pragmatic-anthropic/examples/tool_loop.rs)
   - a real Messages-API tool-use agent, durable end to end: `Conversation`
   in, `Turn` out, every tool call a write-ahead journaled effect.
-- [The research](https://aniketh.net/pragmatic/research/) - the calculus and
-  proofs underneath the guarantees.
+- [Concepts](concepts.md) - the calculus and proofs underneath the
+  guarantees.

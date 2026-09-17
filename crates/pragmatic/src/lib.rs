@@ -10,8 +10,9 @@
 //! [`Oracle`]) and journals every realized outcome to an append-only,
 //! hash-chained log (the [`Journal`]). Recovery becomes replay: read back
 //! recorded outcomes instead of re-sampling the model. The replay guarantee
-//! (T1) is proved in the Agentical calculus and mechanized in Lean 4; this
-//! crate is the runtime that carries it into production.
+//! (T1) is proved in the Agentical calculus - a paper proof, validated here
+//! empirically; the Lean 4 mechanization is still in progress. This crate is
+//! the runtime that carries the guarantee into production.
 //!
 //! ## Three guarantees, every run
 //!
